@@ -8,7 +8,7 @@ cropping = False
 
 def click_and_crop(event, x, y, flags, param):
     # grab references to the global variables
-    global refPt, cropping
+    global refPt, cropping, callback
     global img, p0, cap, ret, old_gray, p1m, st, err, feature_params, old_frame, frame, frame_gray, good_old, p1, st, err
     # if the left mouse button was clicked, record the starting
     # (x, y) coordinates and indicate that cropping is being
@@ -25,41 +25,11 @@ def click_and_crop(event, x, y, flags, param):
             refPt.append((x, y))
             cropping = False
 
-            # draw a rectangle around the region of interest
-            cv2.rectangle(img, refPt[0], refPt[1], (0, 255, 0), 2)
-            cv2.imshow("image", img)
-            ret, old_frame = cap.read()
-            xs, ys = refPt[0]
-            xk, yk = refPt[1]
-            ROI = old_frame[ys:yk,xs:xk]
-            ROI_region = np.zeros((480,640,1), dtype='uint8')
-            print(f"ROI_REGION_PO_KOPI_Z_OLD_FRAME:{type(ROI_region)}, {ROI_region.shape}, {ROI_region.dtype}")
-            print(f"old_frame_REGION_PO_KOPI_Z_OLD_FRAME:{type(old_frame)}, {old_frame.shape}, {old_frame.dtype}")
-            ROI_region[ys:yk,xs:xk] = 255
-            #ROI_region = cv2.cvtColor(ROI_region, cv2.COLOR_BGR2GRAY)
-            old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
-            cv2.imshow('ROI_region', ROI_region)
-            old_gray = cv2.bitwise_and(old_gray, old_gray, mask = ROI_region)
-            old_frame = cv2.bitwise_and(old_frame, old_frame, mask = ROI_region)
-            #ROI_gray = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
-            cv2.imshow('ROI', ROI)
-            cv2.imshow('old_gray', old_gray)
-            cv2.imshow('old_frame', old_frame)
-            p0 = cv2.goodFeaturesToTrack(old_gray, mask=None, **feature_params)
-            p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0, None, **lk_params)
-            good_old = p1[st == 1]
-            good_new = good_old
-
-            p0 = good_old.reshape(-1, 1, 2)
-            #p1 = good_new.reshape(-1, 1, 2)
-            print(p0)
-            #cv2.waitKey(0)
-    
+      
+ 
 
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", click_and_crop)
-
-
 
 cap = cv2.VideoCapture(1)
 #cap = cv2.VideoCapture('side.avi')
@@ -85,7 +55,6 @@ print(p0)
 mask = np.zeros_like(old_frame)
 pts: deque = deque(maxlen=120)
 while(1):
-    global p1
     ret, frame = cap.read()
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     frame_no = cap.get(cv2.CAP_PROP_POS_FRAMES)
@@ -94,6 +63,8 @@ while(1):
     # calculate optical flow
     p1, st, err = cv2.calcOpticalFlowPyrLK(
         old_gray, frame_gray, p0, None, **lk_params)
+    if p1 is None:
+        continue
     # Select good points
     good_new = p1[st == 1]
     good_old = p0[st == 1]
@@ -105,8 +76,8 @@ while(1):
 
         # derivative a b in time give us velocity
         #dist = sqrt((a-c)*(a-c)-(b-d)*(b-d))
-        cv2.line(mask, (c, d), (int(c+10), int(d+10)),
-                 color=(122, 0, 0), thickness=4)
+        #cv2.line(mask, (c, d), (int(c+10), int(d+10)),
+        #        color=(122, 0, 0), thickness=4)
 
         #mask = cv2.line(mask, (a,b),(c,d), color[i].tolist(), 2)
         #frame = cv2.circle(frame,(a,b),5, color[i].tolist(),-1)
@@ -126,6 +97,8 @@ while(1):
             mask = cv2.line(mask, (a, b), (c, d), color[i].tolist(), 2)
         frame = cv2.circle(frame, (a, b), 5, color[i].tolist(), -1)
 
+    img = cv2.add(frame, mask)
+
     # reinit features
     if cv2.waitKey(1) & 0xFF == ord('f'):
         ret, old_frame = cap.read()
@@ -133,19 +106,47 @@ while(1):
         p0 = cv2.goodFeaturesToTrack(old_gray, mask=None, **feature_params)
         print(p0)
 
-    img = cv2.add(frame, mask)
+    # Now update the previous frame and previous points
+
+    if len(refPt) == 2:
+        # draw a rectangle around the region of interest
+        _, frameHere = cap.read()
+        frameHereGray = cv2.cvtColor(frameHere, cv2.COLOR_BGR2GRAY)
+        cv2.rectangle(img, refPt[0], refPt[1], (0, 255, 0), 2)
+        cv2.imshow("image", img)
+        ret, old_frame = cap.read()
+        xs, ys = refPt[0]
+        xk, yk = refPt[1]    
+        ROI = old_frame[ys:yk+10,xs:xk+10]
+        ROI_region = np.zeros((480,640,1), dtype='uint8')
+        print(f"ROI_REGION_PO_KOPI_Z_OLD_FRAME:{type(ROI_region)}, {ROI_region.shape}, {ROI_region.dtype}")
+        print(f"old_frame_REGION_PO_KOPI_Z_OLD_FRAME:{type(old_frame)}, {old_frame.shape}, {old_frame.dtype}")
+        ROI_region[ys:yk,xs:xk] = 255
+        #ROI_region = cv2.cvtColor(ROI_region, cv2.COLOR_BGR2GRAY)
+        old_gray = cv2.cvtColor(old_frame, cv2.COLOR_BGR2GRAY)
+        cv2.imshow('ROI_region', ROI_region)
+        gray_with_mask_appllied = cv2.bitwise_and(old_gray, old_gray, mask = ROI_region)
+        #ROI_gray = cv2.cvtColor(ROI, cv2.COLOR_BGR2GRAY)
+        cv2.imshow('gray_with_mask_appllied', gray_with_mask_appllied)
+        cv2.imshow('old_gray', old_gray)
+        p0_temp = cv2.goodFeaturesToTrack(gray_with_mask_appllied, mask=None, **feature_params)
+        # p1, st, err = cv2.calcOpticalFlowPyrLK(old_gray, frame_gray, p0_temp, None, **lk_params)
+        p0 = p0_temp.reshape(-1, 1, 2)
+        print(p0)
+        refPt = []
+        deque.clear(pts)
+        continue
+
+    # Now update the previous frame and previous points
+    old_gray = frame_gray.copy()
+    p0 = good_new.reshape(-1,1,2)
+        
     cv2.imshow('image', img)
     k = cv2.waitKey(30) & 0xff
     if k == 27:
         break
-    # Now update the previous frame and previous points
-    if cropping is True:
-        old_gray = frame_gray.copy()
-        p0 = good_new.reshape(-1, 1, 2)
-    else:
-        old_gray = old_gray.copy()
-        p0 = good_old.reshape(-1, 1, 2)
-        cropping = False
 
+
+    
 cv2.destroyAllWindows()
 cap.release()
