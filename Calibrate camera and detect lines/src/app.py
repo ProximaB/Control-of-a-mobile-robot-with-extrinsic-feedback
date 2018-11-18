@@ -47,15 +47,15 @@ def compare_images(image1, image2, image1_exp="Image 1", image2_exp="Image 2"):
 
 # CameraCalibration
 imgpoints, objpoints = collect_callibration_points()
-img = mpimg.imread('./../camera_cal/calibration3.jpg')
+img = mpimg.imread('./checkerboards_cal/Checkerboard_ + 20181118_163631.jpeg')
 undistorted, mtx, dist_coefficients = cal_undistort(img,
                                                     objpoints,
                                                     imgpoints)
 compare_images(img, undistorted, "Original Image", "Undistorted Image")
 
-image_path = './../test_images/straight_lines1.jpg'
+image_path = './straight_lines1.jpg'
 image = mpimg.imread(image_path)
-image, mtx, dist_coefficients = cal_undistort(image, objpoints, imgpoints)\
+image, mtx, dist_coefficients = cal_undistort(image, objpoints, imgpoints)
 
 # Gradient thresholdign
 
