@@ -1,0 +1,4 @@
+Aby skorzystać z KLT najpierw musimy mu dostarczyć listę features z obrazu, można je uzskać z feature extracotora, który można później poddać klasyfikacji, ale można również samemu extract features i śledzić wybrane cechy.
+
+Po features extractor przychodzi czas na feture descriptor
+extractor uzyskuje features zwykle są to krawędzie lub narożniki, punkty o danej masce, a nastepnie descriptor opisuje features by mozna bylo je wydajnie porównywać

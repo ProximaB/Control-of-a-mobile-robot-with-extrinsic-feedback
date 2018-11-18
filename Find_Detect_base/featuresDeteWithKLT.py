@@ -9,7 +9,7 @@ cropping = False
 def click_and_crop(event, x, y, flags, param):
     # grab references to the global variables
     global refPt, cropping, callback
-    global img, p0, cap, ret, old_gray, p1m, st, err, feature_params, old_frame, frame, frame_gray, good_old, p1, st, err
+   # global img, p0, cap, ret, old_gray, p1m, st, err, feature_params, old_frame, frame, frame_gray, good_old, p1, st, err
     # if the left mouse button was clicked, record the starting
     # (x, y) coordinates and indicate that cropping is being
     # performed
@@ -35,12 +35,12 @@ cap = cv2.VideoCapture(1)
 #cap = cv2.VideoCapture('side.avi')
 # params for ShiTomasi corner detection
 feature_params = dict(maxCorners=100,
-                      qualityLevel=0.3,
+                      qualityLevel=0.8,
                       minDistance=7,
-                      blockSize=7)
+                      blockSize=20)
 # Parameters for lucas kanade optical flow
-lk_params = dict(winSize=(15, 15),
-                 maxLevel=2,
+lk_params = dict(winSize=(5, 5),
+                 maxLevel=4,
                  criteria=(cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
 # Create some random colors
 color = np.random.randint(0, 255, (120, 3))
