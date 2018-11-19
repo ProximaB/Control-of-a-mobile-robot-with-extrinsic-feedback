@@ -72,10 +72,10 @@ def get_vertices(contours, cid, slope, quad):
     M2 = (0.0, 0.0)
     M3 = (0.0, 0.0)
     x, y, w, h = cv2.boundingRect(contours[cid])
-    A = (x, y)
-    B = (x+w, y)
-    C = (x+w, h+y)
-    D = (x, y+h)
+    A = (x, y) # Bottom left
+    B = (x+w, y) #  Bottom righnt
+    C = (x+w, h+y) # top right
+    D = (x, y+h) # Top left
     W = ((A[0]+B[0])/2, A[1])
     X = (B[0], (B[1]+C[1])/2)
     Y = ((C[0]+D[0])/2, C[1])
@@ -315,7 +315,7 @@ while True:
 
         top = outlier
         dist = line_equation(mc[median1], mc[median2], mc[outlier])
-        slope, align = lineSlope(mc[median1], mc[median2])
+        slope, align = line_slope(mc[median1], mc[median2])
 
         if align == 0:
             bottom = median1
@@ -346,14 +346,14 @@ while True:
             tempO = []
             src = []
             N = (0, 0)
-            tempL = getVertices(contours, top, slope, tempL)
-            tempM = getVertices(contours, right, slope, tempM)
-            tempO = getVertices(contours, bottom, slope, tempO)
-            L = update_cornerOr(orientation, tempL)
-            M = update_cornerOr(orientation, tempM)
-            O = update_cornerOr(orientation, tempO)
+            tempL = get_vertices(contours, top, slope, tempL)
+            tempM = get_vertices(contours, right, slope, tempM)
+            tempO = get_vertices(contours, bottom, slope, tempO)
+            L = update_corner_or(orientation, tempL)
+            M = update_corner_or(orientation, tempM)
+            O = update_corner_or(orientation, tempO)
 
-            iflag, N = getIntersection(M[1], M[2], O[3], O[2], N)
+            iflag, N = get_intersection(M[1], M[2], O[3], O[2], N)
             src.append(L[0])
             src.append(M[1])
             src.append(N)
