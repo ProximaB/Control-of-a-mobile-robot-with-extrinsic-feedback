@@ -87,8 +87,8 @@ def get_vertices(contours, cid, slope, quad):
     pd2 = 0.0
     if(slope > 5 or slope < -5):
         for i in range(len(contours[cid])):
-            pd1 = line_equation(C, A, contours[cid][i])
-            pd2 = line_equation(B, D, contours[cid][i])
+            pd1 = line_equation(C, A, contours[cid][0][i])
+            pd2 = line_equation(B, D, contours[cid][0][i])
             if(pd1 >= 0.0 and pd2 > 0.0):
                 dmax[1], M1 = update_corner(contours[cid][i], W, dmax[1], M1)
             elif(pd1 > 0.0 and pd2 <= 0):
