@@ -4,10 +4,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - ca-certificates=2018.03.07=0
-  - certifi=2018.10.15=py36_0
   - dill=0.2.8.2=py36_0
-  - openssl=1.0.2p=hfa6e2cd_0
   - pyreadline=2.1=py36_1
   - vc=14.1=h21ff451_3
   - vs2015_runtime=15.5.2=3
@@ -19,9 +16,13 @@ dependencies:
   - backcall=0.1.0=py36_0
   - blas=1.0=mkl
   - bleach=3.0.2=py36_0
+  - ca-certificates=2018.03.07=0
+  - certifi=2018.10.15=py36_0
   - colorama=0.4.0=py36_0
+  - cycler=0.10.0=py36hd299a41_0
   - decorator=4.3.0=py36_0
   - entrypoints=0.2.3=py36_2
+  - freetype=2.8=h0224ed4_1
   - icc_rt=2017.0.4=h97af966_0
   - icu=58.2=h3fcc66b_1
   - intel-openmp=2019.1=144
@@ -35,6 +36,7 @@ dependencies:
   - jupyter_core=4.4.0=py36_0
   - jupyterlab=0.35.3=py36_0
   - jupyterlab_server=0.2.0=py36_0
+  - kiwisolver=1.0.1=py36h6538335_0
   - libpng=1.6.34=h79bbb47_0
   - libsodium=1.0.16=h9d3ae62_0
   - libtiff=4.0.9=h36446d0_2
@@ -44,6 +46,7 @@ dependencies:
   - m2w64-gmp=6.1.0=2
   - m2w64-libwinpthread-git=5.0.0.4634.697f757=2
   - markupsafe=1.1.0=py36he774522_0
+  - matplotlib=2.2.2=py36h153e9ff_0
   - mistune=0.8.4=py36he774522_0
   - mkl=2018.0.3=1
   - mkl_fft=1.0.6=py36hdbbee80_0
@@ -54,6 +57,7 @@ dependencies:
   - notebook=5.7.2=py36_0
   - numpy=1.15.4=py36ha559c80_0
   - numpy-base=1.15.4=py36h8128ebf_0
+  - openssl=1.0.2p=hfa6e2cd_0
   - pandoc=2.2.3.2=0
   - pandocfilters=1.4.2=py36_1
   - parso=0.3.1=py36_0
@@ -62,13 +66,17 @@ dependencies:
   - prometheus_client=0.4.2=py36_0
   - prompt_toolkit=2.0.7=py36_0
   - pygments=2.2.0=py36h1a04f08_0
+  - pyparsing=2.3.0=py36_0
+  - pyqt=5.6.0=py36h6538335_6
   - python=3.6.7=h33f27b4_1
   - python-dateutil=2.7.5=py36_0
+  - pytz=2018.7=py36_0
   - pywinpty=0.5.4=py36_0
   - pyzmq=17.1.2=py36hfa6e2cd_0
   - qt=5.6.2=vc14h6f76a7e_12
   - send2trash=1.5.0=py36_0
   - setuptools=40.6.2=py36_0
+  - sip=4.18.1=py36h6538335_2
   - six=1.11.0=py36_1
   - sqlite=3.25.3=he774522_0
   - terminado=0.8.1=py36_1
