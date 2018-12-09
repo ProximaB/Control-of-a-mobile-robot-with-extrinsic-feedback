@@ -1,1 +1,4 @@
 conda env export > "C:\Users\barte\Documents\Studia VII\Image_processing\env\opencv_env.yml"
+
+create form env yml file
+conda env create -f "C:\Users\barte\Documents\Studia VII\Image_processing\env\opencv_env.yml"
