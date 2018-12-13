@@ -67,7 +67,7 @@ D.ADAPTIVE_THRESHOLD = True
 D.BACKGROUND_EXTRACTION = True
 
 # do you want small windows (about 320 x 240)
-D.half_size = False
+D.HALF_SIZE= False
 
 
 

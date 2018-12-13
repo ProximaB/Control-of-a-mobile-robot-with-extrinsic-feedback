@@ -33,7 +33,7 @@ D.BLUE = 1
 #specify the filepath to the video (inside normpath!)
 #D.VIDEO_PATH = normpath("C:/Users/barte/Documents/Studia VII/Image_processing/Assets/Green_Blue_Led.avi")
 #D.VIDEO_PATH = normpath(r'C:/Users/barte/Documents/Studia VII/Image_processing/Assets/Green_Blue_Led.avi')
-D.VIDEO_PATH = 1
+D.VIDEO_PATH = 0
 
 #the number of frames to skip to get to the beginning of the tadro's swimming
 D.NUM_FRAMES_TO_SKIP = 0
@@ -64,7 +64,7 @@ D.NUM_CALIBRATION_FRAMES_TO_SKIP = 0
 D.ADAPTIVE_THRESHOLD = True
 
 #this doesn't work - keep False
-D.BACKGROUND_EXTRACTION = True
+D.BACKGROUND_EXTRACTION = False
 
 # do you want small windows (about 320 x 240)
 D.half_size = False
@@ -192,7 +192,7 @@ def init_images():
         them
     """
     # get D so that we can change values in it
-    global D
+    global D, frame_counter
 
     # Find the size of the image 
     # We set D.image right before calling this function
@@ -369,14 +369,14 @@ def make_tadro_path_heading_image():
 
 frame_counter2 = 0
 def extract_background():
-    global D
+    global D, frame_counter2
 
     cap = cv.VideoCapture(D.VIDEO_PATH)
     D.background_extractor = cv.bgsegm.createBackgroundSubtractorMOG() #?
     for i in range(0, D.NUM_FRAMES_TO_SKIP):
         cap.read()
     frame = cap.read()
-    while (cap.isOpened() and frame != None):
+    while (cap.isOpened() and frame is None):
         ret, frame = cap.read()
 
         if (D.PLAY_IN_LOOP == True):
