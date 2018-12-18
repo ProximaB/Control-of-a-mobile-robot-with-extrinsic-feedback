@@ -2,16 +2,13 @@ import numpy as np
 import cv2 as cv
 import math
 from os.path import normpath
-import copy
+import copy, sys
+sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
 
+# load Config
 from config import D as Config
+# import Robot class
 from robot import Robot
-def init_globals():
-    """ 
-    Sets up the data we need in the global dictionary D, with is two sets of thresholdings values for two tracked object (leds) green and blue
-    The function provides interactive gui for easy tresholding configuration.
-    """
-    pass
 
 print(Config.__dict__, '\n')
 
