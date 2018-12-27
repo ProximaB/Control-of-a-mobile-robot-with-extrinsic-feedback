@@ -8,10 +8,10 @@ D = Data()
 
 ######################## SET D CONSTANTS CONFIG OBJECT ######################## 
 
-#Choose leds order
-D.GREEN = 0
+#Choose leds order, when LEFT_LD = 0 that refer to led on the side wihich robot is turing going forward-left 
+D.LEFT_LD = 0
 
-D.BLUE = 1
+D.RIGHT_LD = 1
 
 ######################## 
 D.VIDEO_PATH = 1
