@@ -33,7 +33,7 @@ D.BLUE = 1
 #specify the filepath to the video (inside normpath!)
 #D.VIDEO_PATH = normpath("C:/Users/barte/Documents/Studia VII/Image_processing/Assets/Green_Blue_Led.avi")
 #D.VIDEO_PATH = normpath(r'C:/Users/barte/Documents/Studia VII/Image_processing/Assets/Green_Blue_Led.avi')
-D.VIDEO_PATH = 1
+D.VIDEO_PATH = 0
 
 #the number of frames to skip to get to the beginning of the tadro's swimming
 D.NUM_FRAMES_TO_SKIP = 0
@@ -47,7 +47,7 @@ D.FRAME_RATE = 0
 D.AUTO_LOAD_THRESHOLDS = False
 
 #do you want to see the Tadro video (Graphical User Interface) as it is processed?
-D.USE_GUI = True
+D.USE_GUI = False
 
 #save the data to a file
 D.SAVE_POSNS = True
@@ -61,10 +61,10 @@ D.CAMERA_CALIBRATION_PATH = None#normpath("C:/Users/barte/Documents/Studia VII/I
 D.NUM_CALIBRATION_FRAMES_TO_SKIP = 0
 
 #Use adaptive thresholding to reduce image noise
-D.ADAPTIVE_THRESHOLD = True
+D.ADAPTIVE_THRESHOLD = False
 
 #this doesn't work - keep False
-D.BACKGROUND_EXTRACTION = True
+D.BACKGROUND_EXTRACTION = False
 
 # do you want small windows (about 320 x 240)
 D.HALF_SIZE= False
@@ -110,12 +110,12 @@ def init_globals():
 
             cv.namedWindow('threshold%d' % i)
             THR_WIND_OFFSET = 640
-            if D.half_size: THR_WIND_OFFSET /= 2
+            if D.HALF_SIZE: THR_WIND_OFFSET /= 2
             cv.moveWindow('threshold%d' % i, THR_WIND_OFFSET, 0)
-
+            
             cv.namedWindow('sliders%d' % i)
             SLD_WIND_OFFSET = 1280
-            if D.half_size: SLD_WIND_OFFSET /= 2
+            if D.HALF_SIZE: SLD_WIND_OFFSET /= 2
             cv.moveWindow('sliders%d' % i, SLD_WIND_OFFSET, 0)
             cv.resizeWindow('sliders%d' % i,400,600)
 
@@ -369,14 +369,14 @@ def make_tadro_path_heading_image():
 
 frame_counter2 = 0
 def extract_background():
-    global D
+    global D, frame_counter2
 
     cap = cv.VideoCapture(D.VIDEO_PATH)
     D.background_extractor = cv.bgsegm.createBackgroundSubtractorMOG() #?
     for i in range(0, D.NUM_FRAMES_TO_SKIP):
         cap.read()
     frame = cap.read()
-    while (cap.isOpened() and frame != None):
+    while (cap.isOpened() and frame is not None):
         ret, frame = cap.read()
 
         if (D.PLAY_IN_LOOP == True):
@@ -825,3 +825,5 @@ def main():
 # what to run as a stand-alone script:
 if __name__ == "__main__":
     main()
+
+serial.OpenSerial();
