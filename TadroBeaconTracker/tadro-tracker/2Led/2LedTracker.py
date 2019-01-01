@@ -5,6 +5,7 @@ import math
 import copy
 import sys
 from os.path import normpath
+from functools import partial 
 
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
@@ -21,7 +22,7 @@ class Data(object):
     pass
 
 def setup_thresholds_sliders(thresholds : dict, data : object):
-    """Create 5 windows, Preview, Threshold_i, Sliders_i, i->[0,1] """
+    """Create windows, and set thresholds, Preview, Threshold_i, Sliders_i, i->[0,1] or more"""
     thresholds[CFG.LEFT_LD] = {'low_red': 0, 'high_red': 255,
                             'low_green': 0, 'high_green': 255,
                             'low_blue': 0, 'high_blue': 255,
@@ -43,71 +44,81 @@ def setup_thresholds_sliders(thresholds : dict, data : object):
         if CFG.HALF_SIZE:
             CFG.THR_WIND_OFFSET /= 2
 
-        cv.moveWindow(f'Threshold_{i}', CFG.THR_WIND_OFFSET, 0)
+        cv.moveWindow(f'Threshold_{i}', CFG.THR_WIND_OFFSET[0] + (i * CFG.THR_WIND_SLF_OFFSET), CFG.THR_WIND_OFFSET[1])
 
         cv.namedWindow(f'Sliders_{i}')
         if CFG.HALF_SIZE: 
             CFG.SLD_WIND_OFFSET /= 2
 
-        cv.moveWindow(f'Sliders_{i}', CFG.SLD_WIND_OFFSET, 0)
+        cv.moveWindow(f'Sliders_{i}', CFG.SLD_WIND_OFFSET[0] + (i * CFG.SLD_WIND_SLF_OFFSET), CFG.SLD_WIND_OFFSET[1])
 
         print('Green: {}'.format(CFG.LEFT_LD))
         thresholds[0]['Test'] = CFG.RIGHT_LD
         print('thresholds: {}'.format(thresholds[0]['Test']))
         print('setting->thresholds: {}'.format(thresholds[0]['Test']))
 
-        cv.createTrackbar('low_red', 'Sliders_%d' % 0, thresholds[0]['low_red'], 255, 
-                              lambda x: change_slider(thresholds, 0, 'low_red', x) )
-        cv.createTrackbar('high_red', 'Sliders_%d' % 0, thresholds[0]['high_red'], 255, 
-                              lambda x: change_slider(thresholds, 0, 'high_red', x) )
-        cv.createTrackbar('low_green', 'Sliders_%d' % 0, thresholds[0]['low_green'], 255, 
-                              lambda x: change_slider(thresholds, 0, 'low_green', x) )
-        cv.createTrackbar('high_green', 'Sliders_%d' % 0, thresholds[0]['high_green'], 255, 
-                              lambda x: change_slider(thresholds, 0, 'high_green', x) )
-        cv.createTrackbar('low_blue', 'Sliders_%d' % 0, thresholds[0]['low_blue'], 255, 
-                              lambda x: change_slider(thresholds, 0,'low_blue', x) )
-        cv.createTrackbar('high_blue', 'Sliders_%d' % 0, thresholds[0]['high_blue'], 255, 
-                              lambda x: change_slider(thresholds, 0,'high_blue', x) )
-        cv.createTrackbar('low_sat', 'Sliders_%d' % 0, thresholds[0]['low_sat'], 255, 
-                              lambda x: change_slider(thresholds, 0,'low_sat', x))
-        cv.createTrackbar('high_sat', 'Sliders_%d' % 0, thresholds[0]['high_sat'], 255, 
-                              lambda x: change_slider(thresholds, 0,'high_sat', x))
-        cv.createTrackbar('low_hue', 'Sliders_%d' % 0, thresholds[0]['low_hue'], 255, 
-                              lambda x: change_slider(thresholds, 0,'low_hue', x))
-        cv.createTrackbar('high_hue', 'Sliders_%d' % 0, thresholds[0]['high_hue'], 255, 
-                              lambda x: change_slider(thresholds, 0,'high_hue', x))
-        cv.createTrackbar('low_val', 'Sliders_%d' % 0, thresholds[0]['low_val'], 255, 
-                              lambda x: change_slider(thresholds, 0,'low_val', x))
-        cv.createTrackbar('high_val', 'Sliders_%d' % 0, thresholds[0]['high_val'], 255, 
-                              lambda x: change_slider(thresholds, 0,'high_val', x))
+        def change_slider_create_callback(thresholds, i, thresh_name):
+            return lambda x: change_slider(thresholds, i, thresh_name, x)
+#(lambda x: change_slider_create_callback(thresholds, i, thresh_name))(i))
+        for thresh_name in thresholds[i].keys():
+           cv.createTrackbar(thresh_name, 'Sliders_%d' % i, thresholds[i][thresh_name], 255,
+           (lambda x: change_slider_create_callback(thresholds, i, thresh_name)))
 
-        cv.createTrackbar('low_red', 'Sliders_%d' % 1, thresholds[1]['low_red'], 255, 
-                              lambda x: change_slider(thresholds, 1, 'low_red', x) )
-        cv.createTrackbar('high_red', 'Sliders_%d' % 1, thresholds[1]['high_red'], 255, 
-                              lambda x: change_slider(thresholds, 1, 'high_red', x) )
-        cv.createTrackbar('low_green', 'Sliders_%d' % 1, thresholds[1]['low_green'], 255, 
-                              lambda x: change_slider(thresholds, 1, 'low_green', x) )
-        cv.createTrackbar('high_green', 'Sliders_%d' % 1, thresholds[1]['high_green'], 255, 
-                              lambda x: change_slider(thresholds, 1, 'high_green', x) )
-        cv.createTrackbar('low_blue', 'Sliders_%d' % 1, thresholds[1]['low_blue'], 255, 
-                              lambda x: change_slider(thresholds, 1,'low_blue', x) )
-        cv.createTrackbar('high_blue', 'Sliders_%d' % 1, thresholds[1]['high_blue'], 255, 
-                              lambda x: change_slider(thresholds, 1,'high_blue', x) )
-        cv.createTrackbar('low_sat', 'Sliders_%d' % 1, thresholds[1]['low_sat'], 255, 
-                              lambda x: change_slider(thresholds, 1,'low_sat', x))
-        cv.createTrackbar('high_sat', 'Sliders_%d' % 1, thresholds[1]['high_sat'], 255, 
-                              lambda x: change_slider(thresholds, 1,'high_sat', x))
-        cv.createTrackbar('low_hue', 'Sliders_%d' % 1, thresholds[1]['low_hue'], 255, 
-                              lambda x: change_slider(thresholds, 1,'low_hue', x))
-        cv.createTrackbar('high_hue', 'Sliders_%d' % 1, thresholds[1]['high_hue'], 255, 
-                              lambda x: change_slider(thresholds, 1,'high_hue', x))
-        cv.createTrackbar('low_val', 'Sliders_%d' % 1, thresholds[1]['low_val'], 255, 
-                              lambda x: change_slider(thresholds, 1,'low_val', x))
-        cv.createTrackbar('high_val', 'Sliders_%d' % 1, thresholds[1]['high_val'], 255, 
-                              lambda x: change_slider(thresholds, 1,'high_val', x))
+        #for thresh_name in thresholds[i].keys():
+        #   cv.createTrackbar(thresh_name, 'Sliders_%d' % i, thresholds[i][thresh_name], 255,
+        #   partial(change_slider, thresholds, i, thresh_name))
+    """ cv.createTrackbar('low_red', 'Sliders_%d' % 0, thresholds[0]['low_red'], 255, 
+                            lambda x: change_slider(thresholds, 0, 'low_red', x) )
+    cv.createTrackbar('high_red', 'Sliders_%d' % 0, thresholds[0]['high_red'], 255, 
+                            lambda x: change_slider(thresholds, 0, 'high_red', x) )
+    cv.createTrackbar('low_green', 'Sliders_%d' % 0, thresholds[0]['low_green'], 255, 
+                            lambda x: change_slider(thresholds, 0, 'low_green', x) )
+    cv.createTrackbar('high_green', 'Sliders_%d' % 0, thresholds[0]['high_green'], 255, 
+                            lambda x: change_slider(thresholds, 0, 'high_green', x) )
+    cv.createTrackbar('low_blue', 'Sliders_%d' % 0, thresholds[0]['low_blue'], 255, 
+                            lambda x: change_slider(thresholds, 0,'low_blue', x) )
+    cv.createTrackbar('high_blue', 'Sliders_%d' % 0, thresholds[0]['high_blue'], 255, 
+                            lambda x: change_slider(thresholds, 0,'high_blue', x) )
+    cv.createTrackbar('low_sat', 'Sliders_%d' % 0, thresholds[0]['low_sat'], 255, 
+                            lambda x: change_slider(thresholds, 0,'low_sat', x))
+    cv.createTrackbar('high_sat', 'Sliders_%d' % 0, thresholds[0]['high_sat'], 255, 
+                            lambda x: change_slider(thresholds, 0,'high_sat', x))
+    cv.createTrackbar('low_hue', 'Sliders_%d' % 0, thresholds[0]['low_hue'], 255, 
+                            lambda x: change_slider(thresholds, 0,'low_hue', x))
+    cv.createTrackbar('high_hue', 'Sliders_%d' % 0, thresholds[0]['high_hue'], 255, 
+                            lambda x: change_slider(thresholds, 0,'high_hue', x))
+    cv.createTrackbar('low_val', 'Sliders_%d' % 0, thresholds[0]['low_val'], 255, 
+                            lambda x: change_slider(thresholds, 0,'low_val', x))
+    cv.createTrackbar('high_val', 'Sliders_%d' % 0, thresholds[0]['high_val'], 255, 
+                            lambda x: change_slider(thresholds, 0,'high_val', x))
+
+    cv.createTrackbar('low_red', 'Sliders_%d' % 1, thresholds[1]['low_red'], 255, 
+                            lambda x: change_slider(thresholds, 1, 'low_red', x) )
+    cv.createTrackbar('high_red', 'Sliders_%d' % 1, thresholds[1]['high_red'], 255, 
+                            lambda x: change_slider(thresholds, 1, 'high_red', x) )
+    cv.createTrackbar('low_green', 'Sliders_%d' % 1, thresholds[1]['low_green'], 255, 
+                            lambda x: change_slider(thresholds, 1, 'low_green', x) )
+    cv.createTrackbar('high_green', 'Sliders_%d' % 1, thresholds[1]['high_green'], 255, 
+                            lambda x: change_slider(thresholds, 1, 'high_green', x) )
+    cv.createTrackbar('low_blue', 'Sliders_%d' % 1, thresholds[1]['low_blue'], 255, 
+                            lambda x: change_slider(thresholds, 1,'low_blue', x) )
+    cv.createTrackbar('high_blue', 'Sliders_%d' % 1, thresholds[1]['high_blue'], 255, 
+                            lambda x: change_slider(thresholds, 1,'high_blue', x) )
+    cv.createTrackbar('low_sat', 'Sliders_%d' % 1, thresholds[1]['low_sat'], 255, 
+                            lambda x: change_slider(thresholds, 1,'low_sat', x))
+    cv.createTrackbar('high_sat', 'Sliders_%d' % 1, thresholds[1]['high_sat'], 255, 
+                            lambda x: change_slider(thresholds, 1,'high_sat', x))
+    cv.createTrackbar('low_hue', 'Sliders_%d' % 1, thresholds[1]['low_hue'], 255, 
+                            lambda x: change_slider(thresholds, 1,'low_hue', x))
+    cv.createTrackbar('high_hue', 'Sliders_%d' % 1, thresholds[1]['high_hue'], 255, 
+                            lambda x: change_slider(thresholds, 1,'high_hue', x))
+    cv.createTrackbar('low_val', 'Sliders_%d' % 1, thresholds[1]['low_val'], 255, 
+                            lambda x: change_slider(thresholds, 1,'low_val', x))
+    cv.createTrackbar('high_val', 'Sliders_%d' % 1, thresholds[1]['high_val'], 255, 
+                            lambda x: change_slider(thresholds, 1,'high_val', x)) """
 
     # Set the method to handle mouse button presses
-    cv.setMouseCallback('image', onMouse, data)
+    cv.setMouseCallback('Preview', onMouse, data)
 
     # We have not created our "scratchwork" images yet
     created_images = False
@@ -134,9 +145,8 @@ def onMouse(event, x, y, flags, data):
 # Function for changing the slider values
 def change_slider(thresholds, i, name, new_threshold):
     """ a small function to change a slider value """
-    print(name)
     thresholds[i][name] = new_threshold
-    
+    print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
 def main():
     # create settings object to store necessary data for further processing, we'll pass it to fcns
     SETTINGS = Settings()
@@ -145,6 +155,7 @@ def main():
     DATA = Data()
 
     setup_thresholds_sliders(SETTINGS.thresholds, DATA)
-    cv.imshow()
 
+main()
+cv.waitKey(0)
 print("[INFO] Exited")
