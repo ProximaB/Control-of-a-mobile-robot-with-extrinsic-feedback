@@ -105,30 +105,50 @@ def load_thresholds(thresholds, pathToFile):
             for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
                           'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
                 cv.setTrackbarPos(x, f'Sliders_{j}', thresholds[j][x])
+
 ###################### CALLBACK FUNCTIONS #########################
 
 def onMouse(event, x, y, flags, data):
     """ Callback dla kliknięcia myszy na okno Previw"""
     # clicked the left button
     if event==cv.EVENT_LBUTTONDOWN: 
-        print("x, y are", x, y, "    ", end=' ')
+        print('X, Y:', x, y, "    ", end=' ')
         (b,g,r) = data.image[y,x]
-        print("r,g,b is", int(r), int(g), int(b), "    ", end=' ')
+        print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
         (h,s,v) = data.hsv[y,x]
-        print("h,s,v is", int(h), int(s), int(v))
+        print('H, S, V', int(h), int(s), int(v))
         data.down_coord = (x,y)
 
 def change_slider(thresholds, i, name, new_threshold):
     """ Callback do zmiany wartośći sliderów i wyświetlenia ustawionej wartości w konsoli."""
     thresholds[i][name] = new_threshold
     print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
+####################### UTILITY ClASS / FUNCTIONS ##########################
+
+def play_in_loop(capture, frame_counter):
+    ''' Here should be explenation how it work'''
+    #If the last frame is reached, reset the capture and the frame_counter
+    CV_CAP_PROP_FRAME_COUNT = 7
+    if frame_counter != capture.get(CV_CAP_PROP_FRAME_COUNT):
+        return False
+    
+    # pominiecie klatek na początku filmu
+    for _ in range(0, CFG.NUM_FRAMES_TO_SKIP):
+        capture.grab()
+    frame_counter = CFG.NUM_FRAMES_TO_SKIP
+    # ustawienie capture na konkretną klatke filmu
+    CV_CAP_PROP_POS_FRAMES = 1
+    capture.set(CV_CAP_PROP_POS_FRAMES, frame_counter)
+    return True
+
+    
 
 def main():
     # create settings object to store necessary data for further processing, 
     # we'll pass it to fcns later
     #CFG
     #Inicjalizacja obiektów do przechowywania ustawień i danych
-    '''
+    
     SETTINGS = Settings()
     SETTINGS.thresholds = [{}, {}]
 
@@ -144,19 +164,54 @@ def main():
     else:
         log_info("Plik został poprawnie otwarty / Kamera zostala poprawnie zainicjalizowana.")
 
+    
+    if CFG.BACKGROUND_EXTRACTION:
+        #extract_background()
+        pass
+
     if (CFG.AUTO_LOAD_THRESHOLDS):
         load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
-    '''
-    testPath = r"C:\Users\barte\Documents\Studia VII\Image_processing\TaeedroBeaconTracker\tadro-tracker\2Led\thresh.pickle"
-    #save_thresholds({1:"TEST",2:"TEST"}, testPath)
+    
+    # pominiecie klatek na początku filmu
+    for _ in range(0, CFG.NUM_FRAMES_TO_SKIP):
+        capture.grab()
 
-    thresh = [{},{}]
-    class klasa: pass
+    # prawdziwy numer klatki
+    frame_counter = CFG.NUM_FRAMES_TO_SKIP
 
-    thresh = load_thresholds(thresh, testPath)
-    print(f'Loaded thresh: {thresh}')
-    cv.waitKey(0)
-    #capture.release()
+    while(capture.isOpened()):
+        grabbed, frame = capture.read()
+        if not grabbed:
+            log_warn('Frame not grabbed. Continue...')
+            continue
+
+        if CFG.BACKGROUND_EXTRACTION:
+            frame = DATA.backgrnd_extractor.apply(frame)
+        
+        DATA.base_image = frame
+        #handle_image() wtf?!
+
+        #zapis danych ruchu robota,. rejestracja ruchu wtf?!
+        DATA.tadro_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_pos))   
+            
+        frame_counter += 1
+
+        # Jeżeli chcemy aby film był przetwarany w pętli, dla celów testowych.
+        if CFG.PLAY_IN_LOOP == True:
+            if play_in_loop(capture, frame_counter) is True:
+                continue
+
+        # pominiętych określonej ilości klatek na cykl
+        for _ in range(0, CFG.FRAME_RATE):
+            capture.grab()
+
+        #increment the frame counter
+        frame_counter += CFG.FRAME_RATE
+
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    capture.release()
 
 main()
 
