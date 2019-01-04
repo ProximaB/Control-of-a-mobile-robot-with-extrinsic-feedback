@@ -186,7 +186,7 @@ def main():
             continue
 
         if CFG.BACKGROUND_EXTRACTION:
-            frame = DATA.backgrnd_extractor.apply(frame)
+            pass# frame = DATA.backgrnd_extractor.apply(frame)
         
         DATA.base_image = frame
         #handle_image() wtf?!
@@ -194,6 +194,7 @@ def main():
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         DATA.tadro_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_pos))   
             
+        #zwiększenei licznika klatek o jeden
         frame_counter += 1
 
         # Jeżeli chcemy aby film był przetwarany w pętli, dla celów testowych.
@@ -205,7 +206,7 @@ def main():
         for _ in range(0, CFG.FRAME_RATE):
             capture.grab()
 
-        #increment the frame counter
+        #increment the frame counter, domyslnie = 0
         frame_counter += CFG.FRAME_RATE
 
         if cv.waitKey(1) & 0xFF == ord('q'):
