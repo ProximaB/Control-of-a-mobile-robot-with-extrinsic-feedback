@@ -187,10 +187,6 @@ def init_globals():
 
 frame_counter = 0
 def init_images():
-    """ Creates all the images we'll need. Is separate from init_globals 
-        since we need to know what size the images are before we can make
-        them
-    """
     # get D so that we can change values in it
     global D, frame_counter
 
@@ -754,7 +750,7 @@ def main():
     # Initialize all the global variables we will need
     init_globals()
     print("working...")
-
+ 
     #get the video file
     cap = cv.VideoCapture(D.VIDEO_PATH)
     #cap = cv.VideoCapture(0)

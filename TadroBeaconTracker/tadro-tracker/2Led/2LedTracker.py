@@ -6,7 +6,7 @@ import copy
 import sys
 from os.path import normpath
 from functools import partial 
-
+import pickle
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
@@ -14,7 +14,8 @@ sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
 from config import D as CFG
 # import Robot class
 from robot import Robot
-
+# custom simpl logger
+from logger import *
 class Settings(object):
     pass
 
@@ -51,32 +52,63 @@ def setup_thresholds_sliders(thresholds : dict, data : object):
             CFG.SLD_WIND_OFFSET /= 2
 
         cv.moveWindow(f'Sliders_{i}', CFG.SLD_WIND_OFFSET[0] + (i * CFG.SLD_WIND_SLF_OFFSET), CFG.SLD_WIND_OFFSET[1])
-
-        print('Green: {}'.format(CFG.LEFT_LD))
-        thresholds[0]['Test'] = CFG.RIGHT_LD
-        print('thresholds: {}'.format(thresholds[0]['Test']))
-        print('setting->thresholds: {}'.format(thresholds[0]['Test']))
-
+    
+    # własny pomysł na rejestrowanie sliderow z wykorzystaiem partial
         for thresh_name in thresholds[i].keys():
            cv.createTrackbar(thresh_name, 'Sliders_%d' % i, thresholds[i][thresh_name], 255,
            partial(change_slider, thresholds, i, thresh_name))
+    """
+    # jeden ze sposobów stworzenia wielu sliderów
+        def create_slider_callback(thresholds, i, thresh_name):
+            return lambda x: change_slider(thresholds, i, thresh_name, x)
 
+        for thresh_name in thresholds[i].keys():
+            cv.createTrackbar(thresh_name, 'Sliders_%d' % i, thresholds[i][thresh_name], 255,
+           (lambda x: create_slider_callback(thresholds, i, thresh_name))(i))
+           #domknciecie, zachowuje context dla i
+    """
     # Set the method to handle mouse button presses
     cv.setMouseCallback('Preview', onMouse, data)
+    """
+        # We have not created our "scratchwork" images yet
+        created_images = False
 
-    # We have not created our "scratchwork" images yet
-    created_images = False
+        # Variable for key presses
+        last_key_pressed = 255
 
-    # Variable for key presses
-    last_key_pressed = 255
+        last_posn = (0,0)
+        velocity = 40
+    """
+def save_thresholds(thresholds : dict, pathToFile):
+    with open(pathToFile, 'wb') as file:
+        try:
+            pickle.dump(thresholds, file)
+            log_info('Thresholds has been saved to file.\n'
+                    f'File path: {pathToFile}')
+        except Exception as error:
+            log_warn(f'Thresholds nie został zapisany do pliku.', error)
+            pass
 
-    last_posn = (0,0)
-    velocity = 40
+def load_thresholds(thresholds, pathToFile):
+    try:
+        with open(pathToFile, 'rb') as file:
+            thresholds = pickle.load(file)
+        log_info('Thresholds został załadowany.')
+        return thresholds
+    except Exception as error:
+        log_warn(f'Thresholds nie został załadowany.', error)
+        return thresholds
 
+    if (CFG.USE_GUI):
+    # aktualizacja pozycji sliderów
+        for j in range(len(thresholds)):
+            for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
+                          'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                cv.setTrackbarPos(x, f'Sliders_{j}', thresholds[j][x])
 ###################### CALLBACK FUNCTIONS #########################
 
 def onMouse(event, x, y, flags, data):
-    """ the method called when the mouse is clicked """
+    """ Callback dla kliknięcia myszy na okno Previw"""
     # clicked the left button
     if event==cv.EVENT_LBUTTONDOWN: 
         print("x, y are", x, y, "    ", end=' ')
@@ -86,20 +118,46 @@ def onMouse(event, x, y, flags, data):
         print("h,s,v is", int(h), int(s), int(v))
         data.down_coord = (x,y)
 
-# Function for changing the slider values
 def change_slider(thresholds, i, name, new_threshold):
-    """ a small function to change a slider value """
+    """ Callback do zmiany wartośći sliderów i wyświetlenia ustawionej wartości w konsoli."""
     thresholds[i][name] = new_threshold
     print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
+
 def main():
-    # create settings object to store necessary data for further processing, we'll pass it to fcns
+    # create settings object to store necessary data for further processing, 
+    # we'll pass it to fcns later
+    #CFG
+    #Inicjalizacja obiektów do przechowywania ustawień i danych
+    '''
     SETTINGS = Settings()
     SETTINGS.thresholds = [{}, {}]
 
     DATA = Data()
 
+    log_info('Inicjalizacja sliderow do thresholdingu.')
     setup_thresholds_sliders(SETTINGS.thresholds, DATA)
 
+    capture = cv.VideoCapture(CFG.VIDEO_PATH)
+    if capture.isOpened() is False:
+        log_error("Błąd podczas otwarcia filmu lub inicjalizacji kamery")
+        return
+    else:
+        log_info("Plik został poprawnie otwarty / Kamera zostala poprawnie zainicjalizowana.")
+
+    if (CFG.AUTO_LOAD_THRESHOLDS):
+        load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
+    '''
+    testPath = r"C:\Users\barte\Documents\Studia VII\Image_processing\TaeedroBeaconTracker\tadro-tracker\2Led\thresh.pickle"
+    #save_thresholds({1:"TEST",2:"TEST"}, testPath)
+
+    thresh = [{},{}]
+    class klasa: pass
+
+    thresh = load_thresholds(thresh, testPath)
+    print(f'Loaded thresh: {thresh}')
+    cv.waitKey(0)
+    #capture.release()
+
 main()
-cv.waitKey(0)
-print("[INFO] Exited")
+
+log_info("Exit")

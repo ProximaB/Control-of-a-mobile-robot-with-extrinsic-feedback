@@ -14,7 +14,7 @@ D.LEFT_LD = 0
 D.RIGHT_LD = 1
 
 ######################## 
-D.VIDEO_PATH = 1
+D.VIDEO_PATH = 0
 
 D.NUM_FRAMES_TO_SKIP = 0
 
@@ -25,7 +25,9 @@ D.FRAME_RATE = 0
 ######################## 
 D.AUTO_LOAD_THRESHOLDS = False
 
-D.USE_GUI = True
+D.THRESHOLDS_FILE_PATH = r"C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\thresh.txt"
+
+D.USE_GUI = False
 
 D.SAVE_POSNS = True
 ######################## 
