@@ -685,7 +685,7 @@ def change_slider(i, name, new_threshold):
 #get image, threshold, and analyze for Tadro
 def handle_image():
     """ this function organizes all of the processing
-        done for each image from a camera or Kinect
+        done for each image from a camera
     """
     # get D so that we can change values in it
     global D

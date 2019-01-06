@@ -120,6 +120,9 @@ def generate_path_image(data):
     pass
     return 
 
+def detectAndTrack2LedRobot(Settings, Data):
+    pass
+    #return Robot
 ###################### CALLBACK FUNCTIONS #########################
 
 def onMouse(event, x, y, flags, data):
@@ -205,11 +208,21 @@ def main():
             pass# frame = DATA.backgrnd_extractor.apply(frame)
         
         DATA.base_image = frame
+        ##################### ROBOT DETECTION AND TRACKING #######################
         #handle_image() wtf?! retval -> Rbot([time], postion, heading(orient))
         # nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas
         
+        result = detectAndTrack2LedRobot()
+
+        #################### ROBOT PID CONTROLLING ########################
+
+
+        ########################### OTHER ACTIONS ################################
+
+
+        
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
-        DATA.robot_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_pos))   
+        #DATA.robot_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_pos))   
             
         #zwiększenei licznika klatek o jeden
         frame_counter += 1
