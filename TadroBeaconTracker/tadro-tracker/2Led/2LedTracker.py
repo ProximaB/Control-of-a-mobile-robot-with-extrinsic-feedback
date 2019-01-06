@@ -7,6 +7,7 @@ import sys
 from os.path import normpath
 from functools import partial 
 import pickle
+import datetime
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
@@ -79,6 +80,15 @@ def setup_thresholds_sliders(thresholds : dict, data : object):
         last_posn = (0,0)
         velocity = 40
     """
+def save_image(image, fileName, path):
+    try:
+        cv.imwrite(f'{path}/{fileName}.bmp', image);
+        log_info('Zapis obrazu zakończony powodzeniem.\n'
+                f'File path: {path}/{fileName}.bmp')
+    except Exception as error:
+        log_warn(f'Obraz nie został zapisany do pliku.', error)
+        pass
+
 def save_thresholds(thresholds : dict, pathToFile):
     with open(pathToFile, 'wb') as file:
         try:
@@ -106,6 +116,10 @@ def load_thresholds(thresholds, pathToFile):
                           'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
                 cv.setTrackbarPos(x, f'Sliders_{j}', thresholds[j][x])
 
+def generate_path_image(data):
+    pass
+    return 
+
 ###################### CALLBACK FUNCTIONS #########################
 
 def onMouse(event, x, y, flags, data):
@@ -123,7 +137,9 @@ def change_slider(thresholds, i, name, new_threshold):
     """ Callback do zmiany wartośći sliderów i wyświetlenia ustawionej wartości w konsoli."""
     thresholds[i][name] = new_threshold
     print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
+    
 ####################### UTILITY ClASS / FUNCTIONS ##########################
+
 
 def play_in_loop(capture, frame_counter):
     ''' Here should be explenation how it work'''
@@ -189,10 +205,11 @@ def main():
             pass# frame = DATA.backgrnd_extractor.apply(frame)
         
         DATA.base_image = frame
-        #handle_image() wtf?!
-
+        #handle_image() wtf?! retval -> Rbot([time], postion, heading(orient))
+        # nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas
+        
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
-        DATA.tadro_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_pos))   
+        DATA.robot_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_pos))   
             
         #zwiększenei licznika klatek o jeden
         frame_counter += 1
@@ -211,8 +228,13 @@ def main():
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
-
+    
+    #path_img = generate_path_image(DATA.)
+    #zapis path image na dysk
+    #file_path = r'C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\2Led'
+    #save_image(path_img, f'Robot_{str(datetime.datetime.now().isoformat())}', file_path)
     capture.release()
+    cv.destroyAllWindows()
 
 main()
 
