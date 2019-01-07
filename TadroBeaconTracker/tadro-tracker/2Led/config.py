@@ -14,7 +14,7 @@ D.LEFT_LD = 0
 D.RIGHT_LD = 1
 
 ######################## 
-D.VIDEO_PATH = 0
+D.VIDEO_PATH = 0 #1 eeye3 mch faster
 
 D.NUM_FRAMES_TO_SKIP = 0
 
@@ -33,7 +33,7 @@ D.SAVE_POSNS = True
 ######################## 
 D.CAMERA_CALIBRATION_SUBSTRACT = False
 
-D.CAMERA_CALIBRATION_PATH = None
+D.CAMERA_CALIBRATION_PATH = r'.\TadroBeaconTracker\tadro-tracker\2Led\calibration_images\cam_calibration_data.p'
 
 D.NUM_CALIBRATION_TO_SKIP = 0
 
