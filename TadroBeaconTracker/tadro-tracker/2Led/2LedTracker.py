@@ -119,55 +119,65 @@ def load_thresholds(thresholds, pathToFile):
 def generate_path_image(data):
     pass
     return 
+
 class Track2Led:
    # def __init__(self, SETTINGS, DATA):
    #     self.SETTINGS = SETTINGS
    #    self.DATA = DATA
+    def __init__(self, DATA):
+        DATA.created_images = False
 
-    def init_images(self, DATA):
-        DATA.size = DATA.processed_image.shape
+    def init_images(self, DATA, SETTINGS):
+        shape = DATA.processed_image.shape
+
         # Create images for each color channel
-        DATA.red_image = np.zeros(DATA.size)
-        DATA.blue_image = np.zeros(DATA.size)
-        DATA.green_image = np.zeros(DATA.size)
-        DATA.hue_image = np.zeros(DATA.size)
-        DATA.sat_image = np.zeros(DATA.size)
-        DATA.val_image = np.zeros(DATA.size)
+        DATA.red_image = np.eye(*shape)
+        DATA.blue_image = np.eye(*shape)
+        DATA.green_image = np.eye(*shape)
+        DATA.hue_image = np.eye(*shape)
+        DATA.sat_image = np.eye(*shape)
+        DATA.val_image = np.eye(*shape)
 
+        DATA.red_image_threshed = np.eye(*shape)
+        DATA.green_image_threshed = np.eye(*shape)
+        DATA.blue_threshed_image = np.eye(*shape)
+        DATA.hue_threshed_image = np.eye(*shape)
+        DATA.sat_threshed_image = np.eye(*shape)
+        DATA.val_threshed_image = np.eye(*shape)
         # The final thresholded result
         DATA.threshed_images = [None, None] # tablca przechowująca wynikowe thresholdy, [object, objct]
-        DATA.threshed_images[DATA.LEFT_LD] = np.zeros(*DATA.size) #operator unpacking
-        DATA.threshed_images[DATA.RIGHT_LD] = np.zeros(*DATA.size)
+        DATA.threshed_images[CFG.LEFT_LD] = np.eye(*shape) #operator unpacking
+        DATA.threshed_images[CFG.RIGHT_LD] = np.eye(*shape)
         # Create an hsv image and a copy for contour-finding
-        DATA.hsv = np.zeros(*DATA.size)
-        DATA.copy = np.zeros(*DATA.size)
+        DATA.hsv = np.eye(*shape)
+        DATA.copy = np.eye(*shape)
         #DATA.storage = cv.CreateMemStorage(0) # Create memory storage for contours
 
         # bunch of keypress values
         # So we know what to show, DATAepenDATAing on which key is presseDATA
         DATA.key_dctionary = {
             ord('0'): DATA.threshed_images,
-            ord('1'): DATA.red,
-            ord('2'): DATA.green,
-            ord('3'): DATA.blue,
-            ord('q'): DATA.red_threshed,
-            ord('w'): DATA.green_threshed,
-            ord('e'): DATA.blue_threshed,
-            ord('a'): DATA.hue,
-            ord('s'): DATA.sat,
-            ord('d'): DATA.val,
-            ord('z'): DATA.hue_threshed,
-            ord('x'): DATA.sat_threshed,
-            ord('c'): DATA.val_threshed,
+            ord('1'): DATA.red_image,
+            ord('2'): DATA.green_image,
+            ord('3'): DATA.blue_image,
+            ord('q'): DATA.red_image_threshed,
+            ord('w'): DATA.green_image_threshed,
+            ord('e'): DATA.blue_threshed_image,
+            ord('a'): DATA.hue_image,
+            ord('s'): DATA.sat_image,
+            ord('d'): DATA.val_image,
+            ord('z'): DATA.hue_threshed_image,
+            ord('x'): DATA.sat_threshed_image,
+            ord('c'): DATA.val_threshed_image,
         }
         #wyrzucic, kalibracja w osobnym programie ze zdjec i zapis od pliku pickle i odczyt rownie, metody juz gotowe w tym module od odcz/zaps
         #Obtain the image from the camera calibration to subtract from the captured image
-        if DATA.CAMERA_CALIBRATION_SUBTRACT:
+        if CFG.CAMERA_CALIBRATION_UNDISTORT:
             data_file = open(CFG.CAMERA_CALIBRATION_PATH, 'rb')
             calib_data = pickle.load(data_file)
             SETTINGS.mtx = calib_data['mtx']
             SETTINGS.dist = calib_data['dist']
-            SETTINGS.data_file.close()
+            data_file.close()
 
             """ cap = cv.VideoCapture(DATA.CAMERA_CALIBRATION_PATH)
             #cap = cv.VideoCapture('C:/Users/barte/DATAocuments/Studia VII/Image_processing/Assets/Green_Blue_Led.avi')
@@ -195,116 +205,115 @@ class Track2Led:
             pass
 
     def threshold_image(self, DATA, SETTINGS):
-    """ runs the image processing in order to create a 
-        black and white thresholded image out of DATA.image
-        into DATA.threshed_images.
-    """
-    if DATA.CAMERA_CALIBRATION_SUBTRACT:
-        DATA.image = cv.subtract(DATA.image, DATA.calibration_image)
+        """ runs the image processing in order to create a 
+            black and white thresholded image out of DATA.image
+            into DATA.threshed_images.
+        """
 
-    if DATA.ADAPTIVE_THRESHOLD:
-        DATA.grey = cv.cvtColor(DATA.image, cv.COLOR_RGB2GRAY)
-        #DATA.grey = np.array(DATA.grey, np.int32)
-        DATA.adaptive_thresh = cv.adaptiveThreshold(
-            DATA.grey, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
+        if CFG.CAMERA_CALIBRATION_UNDISTORT:
+            #DATA.image = cv.subtract(DATA.image, DATA.calibration_image)
+            DATA.processed_image = cv.undistort(DATA.processed_image, SETTINGS.mtx, SETTINGS.dist, None, mtx)
+        if CFG.ADAPTIVE_THRESHOLD:
+            DATA.grey = cv.cvtColor(DATA.processed_image, cv.COLOR_RGB2GRAY)
+            #DATA.grey = np.array(DATA.grey, np.int32)
+            DATA.adaptive_thresh = cv.adaptiveThreshold(
+                DATA.grey, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY, 11, 2)
 
-    # DATA.image.shape[2] gives the number of channels
-    DATA.BGRchannels = cv.split(DATA.image)
-    #print DATA.BGRchannels
-    DATA.blue = DATA.BGRchannels[0]
-    DATA.green = DATA.BGRchannels[1]
-    DATA.red = DATA.BGRchannels[2]
+        # DATA.image.shape[2] gives the number of channels
+        DATA.BGRchannels = cv.split(DATA.processed_image)
+        #print DATA.BGRchannels
+        DATA.blue_image= DATA.BGRchannels[0]
+        DATA.green_image = DATA.BGRchannels[1]
+        DATA.red_image = DATA.BGRchannels[2]
 
-    # This line creates a hue-saturation-value image
-    DATA.hsv = cv.cvtColor(DATA.image, cv.COLOR_BGR2HSV)
-    #print DATA.image.shape
-    #print DATA.hsv
-    #print DATA.hsv.shape
-    #print cv.split(DATA.hsv)
-    DATA.HSVchannels = cv.split(DATA.hsv)
-    #print DATA.HSVchannels
-    DATA.hue = DATA.HSVchannels[0]
-    DATA.sat = DATA.HSVchannels[1]
-    DATA.val = DATA.HSVchannels[2]
+        # This line creates a hue-saturation-value image
+        DATA.hsv = cv.cvtColor(DATA.processed_image, cv.COLOR_BGR2HSV)
+        #print DATA.image.shape
+        #print DATA.hsv
+        #print DATA.hsv.shape
+        #print cv.split(DATA.hsv)
+        DATA.HSVchannels = cv.split(DATA.hsv)
+        #print DATA.HSVchannels
+        DATA.hue_image = DATA.HSVchannels[0]
+        DATA.sat_image = DATA.HSVchannels[1]
+        DATA.val_image = DATA.HSVchannels[2]
 
-    for i in range(len(DATA.thresholds)):
-        DATA.red_threshed = np.eye(*DATA.size)
-        DATA.blue_threshed = np.eye(*DATA.size)
-        DATA.green_threshed = np.eye(*DATA.size)
-        DATA.hue_threshed = np.eye(*DATA.size)
-        DATA.sat_threshed = np.eye(*DATA.size)
-        DATA.val_threshed = np.eye(*DATA.size)
+        shape = DATA.hue_image.shape
+        for i in range(len(SETTINGS.thresholds)):
+            DATA.red_threshed_image = np.eye(*shape)
+            DATA.blue_threshed_image = np.eye(*shape)
+            DATA.green_threshed_image = np.eye(*shape)
+            DATA.hue_threshed_image = np.eye(*shape)
+            DATA.sat_threshed_image = np.eye(*shape)
+            DATA.val_threshed_image = np.eye(*shape)
 
-        DATA.threshed_images[i] = np.eye(*DATA.size)
+            DATA.threshed_images[i] = np.eye(*shape)
 
-        DATA.red_threshed = cv.inRange(
-            DATA.red, DATA.thresholds[i]["low_red"], DATA.thresholds[i]["high_red"], DATA.red_threshed)
-        DATA.blue_threshed = cv.inRange(
-            DATA.blue, DATA.thresholds[i]["low_blue"], DATA.thresholds[i]["high_blue"], DATA.blue_threshed)
-        DATA.green_threshed = cv.inRange(
-            DATA.green, DATA.thresholds[i]["low_green"], DATA.thresholds[i]["high_green"], DATA.green_threshed)
-        DATA.hue_threshed = cv.inRange(
-            DATA.hue, DATA.thresholds[i]["low_hue"], DATA.thresholds[i]["high_hue"], DATA.hue_threshed)
-        DATA.sat_threshed = cv.inRange(
-            DATA.sat, DATA.thresholds[i]["low_sat"], DATA.thresholds[i]["high_sat"], DATA.sat_threshed)
-        DATA.val_threshed = cv.inRange(
-            DATA.val, DATA.thresholds[i]["low_val"], DATA.thresholds[i]["high_val"], DATA.val_threshed)
+            DATA.red_threshed_image = cv.inRange(
+                DATA.red_image, SETTINGS.thresholds[i]["low_red"], SETTINGS.thresholds[i]["high_red"], DATA.red_threshed_image)
+            DATA.blue_threshed_image = cv.inRange(
+                DATA.blue_image, SETTINGS.thresholds[i]["low_blue"], SETTINGS.thresholds[i]["high_blue"], DATA.blue_threshed_image)
+            DATA.green_threshed_image = cv.inRange(
+                DATA.green_image, SETTINGS.thresholds[i]["low_green"], SETTINGS.thresholds[i]["high_green"], DATA.green_threshed_image)
+            DATA.hue_threshed_image = cv.inRange(
+                DATA.hue_image, SETTINGS.thresholds[i]["low_hue"], SETTINGS.thresholds[i]["high_hue"], DATA.hue_threshed_image)
+            DATA.sat_threshed_image = cv.inRange(
+                DATA.sat_image, SETTINGS.thresholds[i]["low_sat"], SETTINGS.thresholds[i]["high_sat"], DATA.sat_threshed_image)
+            DATA.val_threshed_image = cv.inRange(
+                DATA.val_image, SETTINGS.thresholds[i]["low_val"], SETTINGS.thresholds[i]["high_val"], DATA.val_threshed_image)
 
-        #mnożenie do wynikowego threshold_iamges
-        DATA.threshed_images[i] = cv.multiply(
-            DATA.red_threshed, DATA.green_threshed, DATA.threshed_images[i])
-        DATA.threshed_images[i] = cv.multiply(
-            DATA.threshed_images[i], DATA.blue_threshed, DATA.threshed_images[i])
-        DATA.threshed_images[i] = cv.multiply(
-            DATA.threshed_images[i], DATA.hue_threshed, DATA.threshed_images[i])
-        DATA.threshed_images[i] = cv.multiply(
-            DATA.threshed_images[i], DATA.sat_threshed, DATA.threshed_images[i])
-        DATA.threshed_images[i] = cv.multiply(
-            DATA.threshed_images[i], DATA.val_threshed, DATA.threshed_images[i])
-
-        if(DATA.ADAPTIVE_THRESHOLD):
+            #mnożenie do wynikowego threshold_iamges
             DATA.threshed_images[i] = cv.multiply(
-                DATA.threshed_images[i], DATA.adaptive_thresh, DATA.threshed_images[i])
+                DATA.red_threshed_image, DATA.green_threshed_image, DATA.threshed_images[i])
+            DATA.threshed_images[i] = cv.multiply(
+                DATA.threshed_images[i], DATA.blue_threshed_image, DATA.threshed_images[i])
+            DATA.threshed_images[i] = cv.multiply(
+                DATA.threshed_images[i], DATA.hue_threshed_image, DATA.threshed_images[i])
+            DATA.threshed_images[i] = cv.multiply(
+                DATA.threshed_images[i], DATA.sat_threshed_image, DATA.threshed_images[i])
+            DATA.threshed_images[i] = cv.multiply(
+                DATA.threshed_images[i], DATA.val_threshed_image, DATA.threshed_images[i])
 
-    #DATA.threshed_images = cv.dilate(DATA.threshed_images, None, iterations=2)
+            if(DATA.ADAPTIVE_THRESHOLD):
+                DATA.threshed_images[i] = cv.multiply(
+                    DATA.threshed_images[i], DATA.adaptive_thresh, DATA.threshed_images[i])
 
-    #cv.imshow(DATA.threshed_images)
-    # erozja dylatacja w zaleznosci od potrzeb
-    #cv.Erode(DATA.threshed_images, DATA.threshed_images, iterations = 1)
-    #cv.Dilate(DATA.threshed_images, DATA.threshed_images, iterations = 1)
+        #DATA.threshed_images = cv.dilate(DATA.threshed_images, None, iterations=2)
 
-def check_leds(x1, y1, x2, y2):
-    #sprawdzenie, czy led są w rozsądniej odległości
+        #cv.imshow(DATA.threshed_images)
+        # erozja dylatacja w zaleznosci od potrzeb
+        #cv.Erode(DATA.threshed_images, DATA.threshed_images, iterations = 1)
+        #cv.Dilate(DATA.threshed_images, DATA.threshed_images, iterations = 1)
 
-    #later, it would be nice to know exactly how far apart they should be based on the skew grid
-    #and build a stronger heuristic from that
-    MAX_DIST = 500
-    MIN_DIST = 1
-    dist = math.sqrt(abs(int(x2) - int(x1))**2 + abs(int(y2) - int(y1))**2)
+    def check_LED(self, x1, y1, x2, y2):
+        #sprawdzenie, czy led są w rozsądniej odległości
 
-    result = MIN_DIST < dist < MAX_DIST
+        #later, it would be nice to know exactly how far apart they should be based on the skew grid
+        #and build a stronger heuristic from that
+        MAX_DIST = 500
+        MIN_DIST = 1
+        dist = math.sqrt(abs(int(x2) - int(x1))**2 + abs(int(y2) - int(y1))**2)
 
-    return result
+        result = MIN_DIST < dist < MAX_DIST
+
+        return result
 
     def find_2Led(self, DATA, SETTINGS):
         """ finds all the contours in threshed image, finds the largest of those,
             and then marks in in the main image
         """
         # initialize list of LED posns to len of thresholds
-        LEDs = [0 for k in range(len(DATA.thresholds))]
+        LED = [0 for k in range(len(SETTINGS.thresholds))]
 
         for i in range(len(DATA.threshed_images)):
             # Create a copy image of thresholds then find contours on that image
             DATA.copy = DATA.threshed_images[i].copy() # copy threshed image
 
-            
-
-            # this is OpenCV's call to find all of the contours:
+            # find all of the contours
             _, contours, _ = cv.findContours(DATA.copy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
 
-            # Next we want to find the *largest* contour
-            # this is the standard algorithm:
-            #    walk the list of all contours, remembering the biggest so far:
+            # znajdz najwiekszy kontur
+            # this is the standard algorithm: #zastąpic sortowaniem np.sort() lub sorted
             if len(contours) > 0:
                 biggest = contours[0]
                 second_biggest = contours[0]
@@ -334,13 +343,13 @@ def check_leds(x1, y1, x2, y2):
                             1, (255, 0, 0))
 
                 #Store the contour info for the biggest blob, which we assume is the LED based on thresholding
-                LEDs[i] = biggest
+                LED[i] = biggest
 
         #print biggest
         #print second_biggest
         #calculate moments for biggest and second biggest blobs
-        moment0 = cv.moments(LEDs[0])
-        moment1 = cv.moments(LEDs[1])
+        moment0 = cv.moments(LED[0])
+        moment1 = cv.moments(LED[1])
 
         if (moment0['m00'] > 0):
             center_x = moment0['m10']/moment0['m00']
@@ -352,15 +361,15 @@ def check_leds(x1, y1, x2, y2):
         if (moment1['m00'] > 0):
             second_center_x = moment1['m10']/moment1['m00']
             second_center_y = moment1['m01']/moment1['m00']
-            DATA.green_pos = (int(second_center_x), int(second_center_y))
+            DATA.green_image_pos = (int(second_center_x), int(second_center_y))
         else:
-            DATA.green_pos = None
+            DATA.green_image_pos = None
 
 
         #if these blobs have areas > 0, then calculate the average of their centroids
         if (moment0['m00'] > 0 and moment1['m00'] > 0):
 
-            led_check = are_these_leds(center_x, center_y, second_center_x, second_center_y)
+            led_check = are_these_LED(center_x, center_y, second_center_x, second_center_y)
 
             if (led_check):
                 DATA.tadro_center = (int((center_x + second_center_x)/2), int((center_y + second_center_y)/2))
@@ -388,7 +397,7 @@ def check_leds(x1, y1, x2, y2):
         DATA.processed_image = DATA.base_image
         
         if DATA.created_images == False:
-            self.init_images(DATA)
+            self.init_images(DATA, SETTINGS)
             DATA.created_images = True
         
         self.threshold_image(DATA, SETTINGS)
@@ -409,6 +418,8 @@ def check_leds(x1, y1, x2, y2):
             # Currently selected threshold image:
             for i in range(len(DATA.threshed_images)):
                 cv.imshow('Threshold_%d' % i, DATA.threshed_images[i])#D.current_threshold )
+        
+        return Robot(2.0 (2,2), 2.0)
 
 
 ###################### CALLBACK FUNCTIONS #########################
@@ -428,7 +439,7 @@ def onMouse(event, x, y, flags, data):
 def change_slider(thresholds, i, name, new_threshold):
     """ Callback do zmiany wartośći sliderów i wyświetlenia ustawionej wartości w konsoli."""
     thresholds[i][name] = new_threshold
-    print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
+    print('{name}: {val}'.format(name=name, val_image = thresholds[i][name]))
 
 # Callback zachowanie dla przycisków i ze pętlą dla przyciskow ustawiajacy wyswietlany thresh
 def check_key_press(key_press, DATA, SETTINGS):
@@ -444,7 +455,7 @@ def check_key_press(key_press, DATA, SETTINGS):
 
     # if a 'q' or ESC was pressed, we quit
     if key_press == ord('q'): 
-        print("quitting")
+        print("Quitting")
         return
 
     # help menu
@@ -461,12 +472,12 @@ def check_key_press(key_press, DATA, SETTINGS):
         print(" f    : show thresholded red image in threshold window")
         print(" g    : show thresholded blue image in threshold window")
         print(" h    : show thresholded green image in threshold window")
-        print(" a    : show hue image in threshold window")
+        print(" a    : show hue_image image in threshold window")
         print(" s    : show saturation image in threshold window")
         print(" o    : save path data")
         print(" p    : draw robot path")
         print(" d    : show value image in threshold window")
-        print(" z    : show thresholded hue image in threshold window")
+        print(" z    : show thresholded hue_image image in threshold window")
         print(" x    : show thresholded saturation image in threshold window")
         print(" c    : show thresholded value image in threshold window")
         print(" v    : saves threshold values to file (overwriting)")
@@ -533,7 +544,7 @@ def main():
     SETTINGS.thresholds = [{}, {}]
 
     DATA = Data()
-    tracker = Track2Led()
+    tracker = Track2Led(DATA)
 
     log_info('Inicjalizacja sliderow do thresholdingu.')
     setup_thresholds_sliders(SETTINGS.thresholds, DATA)
@@ -571,10 +582,10 @@ def main():
         
         DATA.base_image = frame
         ##################### ROBOT DETECTION AND TRACKING #######################
-        #handle_image() wtf?! retval -> Rbot([time], postion, heading(orient))
+        #handle_image() wtf?! retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas
         
-        result = Track2Led.detectAndTrack2LedRobot(SETTINGS, DATA)
+        result = tracker.detectAndTrack2LedRobot(SETTINGS, DATA)
 
         #################### ROBOT PID CONTROLLING ########################
 
@@ -584,7 +595,7 @@ def main():
 
         
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
-        #DATA.robot_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_pos))   
+        #DATA.robot_data.append((frame_counter, DATA.tadro_center, DATA.blue_pos, DATA.green_image_pos))   
             
         #zwiększenei licznika klatek o jeden
         frame_counter += 1

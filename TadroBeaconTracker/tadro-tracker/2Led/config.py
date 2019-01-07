@@ -31,9 +31,9 @@ D.USE_GUI = False
 
 D.SAVE_POSNS = True
 ######################## 
-D.CAMERA_CALIBRATION_SUBSTRACT = False
+D.CAMERA_CALIBRATION_UNDISTORT = False
 
-D.CAMERA_CALIBRATION_PATH = r'.\TadroBeaconTracker\tadro-tracker\2Led\calibration_images\cam_calibration_data.p'
+D.CAMERA_CALIBRATION_PATH = r'C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\2Led\calibration_images\cam_calibration_data.p'
 
 D.NUM_CALIBRATION_TO_SKIP = 0
 

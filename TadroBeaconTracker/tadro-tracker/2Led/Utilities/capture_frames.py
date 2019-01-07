@@ -72,64 +72,8 @@ def cal_undistort(img, objpoints, imgpoints):
     undist = cv2.undistort(img, mtx, dist, None, mtx)
     return undist, mtx, dist
 
-
-def capture_save_undistort_img(camId = 0, name_prefix = 'work_space_photo', path = f'{os.path.abspath(os.curdir)}\work_space',
-                                  calib_data_file = None): 
-    font                   = cv2.FONT_HERSHEY_DUPLEX
-    position               = (15,50)
-    fontScale              = 1.3
-    fontColor              = (255,255,255)
-    lineType               = 2
-
-    cap = cv2.VideoCapture(camId)
-    
-    do_undistort = False
-    if calib_data_file is not None:
-        try:
-            data_file = open(calib_data_file, 'rb')
-        except: 
-                print('Calibration data Not loaded.')
-                return
-            
-        calib_data = pickle.load(data_file)
-        data_file.close()
-        mtx = calib_data['mtx'][0]
-        dist = calib_data['dist'][0]
-        do_undistort = True
-        print('Calibration data loaded.')
-            
-    while True:
-        ret, frame = cap.read()
-        if ret is False: 
-            return
-        if do_undistort is True:
-            frame = cv2.undistort(frame,mtx,dist,None,mtx)
-        img = frame.copy()
-                
-        key =  cv2.waitKey(30) & 0xFF
-        if key == ord('q'):
-            print('quited')
-            break
-        elif key == ord('s'):
-            cv2.putText(frame,'To save click S, to pass P', 
-                position, 
-                font, 
-                fontScale,
-                fontColor,
-                lineType)
-            cv2.imshow('frame', frame)
-            doSave = cv2.waitKey(0)  & 0xFF
-            if doSave == ord('s'):
-                gene_name = f'{name_prefix}{datetime.now():%Y%m%d_%H%M%S}'
-                res = save_img(gene_name, img, path) 
-                if res is True: print(f"Saved: {os.path.abspath(os.curdir)}\\checkerboards_cal\\{gene_name}")
-            else: continue
-        cv2.imshow('frame', frame)
-    cap.release
-    cv2.destroyAllWindows()
-
 if __name__ == '__main__':
     print(f'Abs Path: {os.path.abspath(os.curdir)}')
     path = r'.\TadroBeaconTracker\tadro-tracker\2Led\calibration_images'
-    capture_save_undistort_img(1, calib_data_file='cam_calibration_data.p')
+    capture_save_undistort_img(1)
     
