@@ -25,6 +25,8 @@ from logger import *
 from utils import *
 # import statusWindow
 from statusWindow import statusWindow
+# import PID 
+from PID import PID
 
 class Settings(object):
     pass
@@ -32,7 +34,7 @@ class Settings(object):
 class Data(object):
     pass
 
-def setup_thresholds_sliders(SETTINGS):
+def setup_thresholds_sliders(SETTINGS, DATA):
     """Create windows, and set thresholds, Preview, Threshold_i, Sliders_i, i->[0,1] or more"""
     SETTINGS.thresholds[CFG.LEFT_LD] = {'low_red': 0, 'high_red': 255,
                             'low_green': 0, 'high_green': 255,
@@ -78,7 +80,7 @@ def setup_thresholds_sliders(SETTINGS):
            #domknciecie, zachowuje context dla i
     """
     # Set the method to handle mouse button presses
-    cv.setMouseCallback('Preview', onMouse, None)
+    cv.setMouseCallback('Preview', onMouse, DATA)
     SETTINGS.last_key_pressed = 255
     #SETTINGS.last_posn = (0,0)
     #SETTINGS.velocity = 40
@@ -89,12 +91,14 @@ def onMouse(event, x, y, flags, DATA):
     """ Callback dla kliknięcia myszy na okno Previw"""
     # clicked the left button
     if event==cv.EVENT_LBUTTONDOWN: 
+        DATA.target = (x,y)
         print('X, Y:', x, y, "    ", end=' ')
         (b,g,r) = DATA.processed_image[y,x]
         print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
         (h,s,v) = DATA.hsv[y,x]
         print('H, S, V', int(h), int(s), int(v))
         DATA.down_coord = (x,y)
+
 
 # Function for changing the slider values
 def change_slider(thresholds, i, name, new_threshold):
@@ -134,12 +138,15 @@ def main():
 
     DATA = Data()
     DATA.robot_data = []
+    DATA.target = (0,0)
     tracker = Track2Led(DATA)
 
     ROBOT = Robot2Led(0,(0,0),0,0,0)
 
+    #PID = PID(CFG.PROPORTIONAL, CFG.INTEGRAL, CFG.DERIVATIVE)
+
     log_info('Inicjalizacja sliderow do thresholdingu.')
-    setup_thresholds_sliders(SETTINGS)
+    setup_thresholds_sliders(SETTINGS, DATA)
 
     capture = cv.VideoCapture(CFG.VIDEO_PATH)
     if capture.isOpened() is False:
@@ -166,23 +173,25 @@ def main():
             continue
         
         DATA.base_image = frame
-        ##################### Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############
+        """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
+        # Zrobiona w juptyer lab
 
-
-        ##################### ROBOT DETECTION AND TRACKING #######################
-
+        """################## ROBOT DETECTION AND TRACKING ######################"""
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
         tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
-        #################### ROBOT PID CONTROLLING ########################
 
+        """###################### ROBOT PID CONTROLLING #########################"""
 
-        ########################### OTHER ACTIONS ################################
+         #PID = DATA.target
+         
+
+        """######################## OTHER ACTIONS ###############################"""
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
 
         sw = statusWindow('Status')
-        sw.drawData(ROBOT.robot_center, ROBOT.heading, 0)
+        sw.drawData(ROBOT.robot_center, ROBOT.heading, math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1]))
         ROBOT.print()
         DATA.robot_data.append(ROBOT)   
 

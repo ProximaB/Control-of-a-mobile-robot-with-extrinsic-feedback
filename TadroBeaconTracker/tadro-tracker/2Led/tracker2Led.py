@@ -298,9 +298,8 @@ class Track2Led:
             self.check_key_press(key_press, DATA, SETTINGS)
 
         # Update the displays:
-        # Main image:
+        cv.circle(DATA.base_image, DATA.target, 3, (255,0,0), 2, -1)
         cv.imshow('Preview', DATA.base_image)
-
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])
