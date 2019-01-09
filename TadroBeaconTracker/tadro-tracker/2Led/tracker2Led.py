@@ -304,8 +304,9 @@ class Track2Led:
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])
-    
-        return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.heading)
+        if DATA.robot_center != ('' or None):
+            return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.led1_pos, DATA.led2_pos, DATA.heading)
+        else: return ROBOT
 
     # Callback zachowanie dla przycisków i z pętlą dla przyciskow ustawiajacy wyswietlany thresh
     def check_key_press(self, key_press, DATA, SETTINGS):

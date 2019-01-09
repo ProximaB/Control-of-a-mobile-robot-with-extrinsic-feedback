@@ -136,7 +136,7 @@ def main():
     DATA.robot_data = []
     tracker = Track2Led(DATA)
 
-    ROBOT = Robot(0,0,0)
+    ROBOT = Robot2Led(0,(0,0),0,0,0)
 
     log_info('Inicjalizacja sliderow do thresholdingu.')
     setup_thresholds_sliders(SETTINGS)
@@ -181,7 +181,8 @@ def main():
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
 
-        statusWindow('qwe').drawData(100,200,300,400)
+        sw = statusWindow('Status')
+        sw.drawData(ROBOT.robot_center, ROBOT.heading, 0)
         ROBOT.print()
         DATA.robot_data.append(ROBOT)   
 
