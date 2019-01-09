@@ -23,6 +23,8 @@ from robot import *
 from logger import *
 # import utils
 from utils import *
+# import statusWindow
+from statusWindow import statusWindow
 
 class Settings(object):
     pass
@@ -164,22 +166,25 @@ def main():
             continue
         
         DATA.base_image = frame
+        ##################### Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############
+
+
         ##################### ROBOT DETECTION AND TRACKING #######################
-        #handle_image() wtf?! retval_image -> Rbot([time], postion, heading(orient))
-        #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas
-        
+
+        #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
+        #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
         tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
-        ROBOT.print()
         #################### ROBOT PID CONTROLLING ########################
 
 
         ########################### OTHER ACTIONS ################################
-
-
-        
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
+
+        statusWindow('qwe').drawData(100,200,300,400)
+        ROBOT.print()
         DATA.robot_data.append(ROBOT)   
+
         #zwiększenei licznika klatek o jeden
         frame_counter += 1
 
