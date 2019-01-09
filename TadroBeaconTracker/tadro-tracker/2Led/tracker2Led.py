@@ -303,7 +303,7 @@ class Track2Led:
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])
-        if DATA.robot_center != ('' or None):
+        if (DATA.robot_center and DATA.led2_pos) != ('' or None):
             return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.led1_pos, DATA.led2_pos, DATA.heading)
         else: return ROBOT
 
@@ -344,8 +344,6 @@ class Track2Led:
             print(" c    : show thresholded value image in threshold window")
             print(" v    : saves threshold values to file")
             print(" b    : loads threshold values from pikle file")
-            print(" u    : mousedrags no longer set thresholds")
-            print(" i    : mousedrag set thresholds to area within drag")
 
         elif key_press == ord('v'):
             save_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)

@@ -21,13 +21,13 @@ class Robot():
     
 class Robot2Led(Robot):
     def __init__(self, time, robot_center, led1_pos, led2_pos, heading):
-        self.left_led_pos = led1_pos if led1_pos != None else ''
-        self.right_led_pos = led2_pos if led2_pos != None else ''
+        self.led1_pos = led1_pos if led1_pos != None else ''
+        self.led2_pos = led2_pos if led2_pos != None else ''
         Robot.__init__(self, time, robot_center, heading)
 
     def update(self, time, robot_center, led1_pos, led2_pos, heading):
-        self.left_led_pos = led1_pos if led1_pos != None else ''
-        self.right_led_pos = led2_pos if led2_pos != None else ''
+        self.led1_pos = led1_pos if led1_pos != None else ''
+        self.led2_pos = led2_pos if led2_pos != None else ''
         self.time = time if time != None else ''
         self.robot_center = robot_center if robot_center != None else ''
         self.heading = heading if heading != None else ''

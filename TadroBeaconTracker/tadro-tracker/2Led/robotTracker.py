@@ -191,7 +191,9 @@ def main():
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
 
         sw = statusWindow('Status')
-        sw.drawData(ROBOT.robot_center, ROBOT.heading, math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1]))
+        error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
+        heading_error = ROBOT.heading - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
+        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
         ROBOT.print()
         DATA.robot_data.append(ROBOT)   
 
