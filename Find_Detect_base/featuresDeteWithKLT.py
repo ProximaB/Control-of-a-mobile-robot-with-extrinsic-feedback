@@ -31,7 +31,7 @@ def click_and_crop(event, x, y, flags, param):
 cv2.namedWindow("image")
 cv2.setMouseCallback("image", click_and_crop)
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 #cap = cv2.VideoCapture('side.avi')
 # params for ShiTomasi corner detection
 feature_params = dict(maxCorners=100,

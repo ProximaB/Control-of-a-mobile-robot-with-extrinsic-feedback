@@ -14,11 +14,12 @@ D.LEFT_LD = 0
 D.RIGHT_LD = 1
 
 ######################## 
-D.VIDEO_PATH = 0 #1 eeye3 mch faster
+#D.VIDEO_PATH = 0 #1 eeye3 mch faster
+D.VIDEO_PATH = normpath(r'C:/Users/barte/Documents/Studia VII/Image_processing/Assets/Green_Blue_Led.avi')
 
 D.NUM_FRAMES_TO_SKIP = 0
 
-D.PLAY_IN_LOOP = False
+D.PLAY_IN_LOOP = True
 
 D.FRAME_RATE = 0
 
@@ -26,8 +27,6 @@ D.FRAME_RATE = 0
 D.AUTO_LOAD_THRESHOLDS = False
 
 D.THRESHOLDS_FILE_PATH = r"C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\thresh.txt"
-
-D.USE_GUI = False
 
 D.SAVE_POSNS = True
 ######################## 
@@ -38,9 +37,7 @@ D.CAMERA_CALIBRATION_PATH = r'C:\Users\barte\Documents\Studia VII\Image_processi
 D.NUM_CALIBRATION_TO_SKIP = 0
 
 ######################## 
-D.ADAPTIVE_THRESHOLD = False
-
-D.BACKGROUND_EXTRACTION = False
+D.ADAPTIVE_THRESHOLD = True
 
 D.HALF_SIZE = False
 
