@@ -1,0 +1,16 @@
+1. Sterownia Robotem
+2. OpenCV sposoby rozpoznawania markerów i lokalizacji
+3. Stanowisko robocze - zalozenia
+	uproszeczenie arruco marker do 36 
+
+	Robot do pracy: alpha bot 2, dr in¿. Bogus³aw Rymut
+
+
+Praca do porównania: http://mathspace.pl/wp-content/uploads/2015/10/rodziny_klasyfikatorow.pdf
+Opis dzia³ania PID: http://robotsforroboticists.com/pid-control/	
+AlphaBot z przyk³adami, prawdopodobnie w nowym R Pi jest zaisntalowane domyœlnie bluetooth
+Trancformacaja, skali kamery, uzuskanie wymiarów rzeczywistych: https://en.wikipedia.org/wiki/Pinhole_camera_model
+
+9.01.2018: Dodaæ mo¿liwoœæ symulacji, robota, model z zajêæ z robotyki + PID test.
+	   Oprzeæ wykrywanie robota o arruco i drugi sposob z zielonym i czerwonym wzkaŸnikami i ewentualnie innne.
+	   Obszar robota bêdzie uzyzskiwany z markerow arruco z ykorzystaniem transformacji afinicznej. https://docs.opencv.org/2.4/doc/tutorials/imgproc/imgtrans/warp_affine/warp_affine.html
