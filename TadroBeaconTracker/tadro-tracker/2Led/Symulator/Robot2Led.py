@@ -1,7 +1,8 @@
 from math import sin, cos
+import numpy as np
 
 class Robot2Led:
-    def __init__(self, x_init, y_init, heading_init, diamater, axle_len, clr_led1, clr_led2):
+    def __init__(self, x_init, y_init, heading_init, diamater, axle_len, clr_led1, clr_led2, round_pos):
         self.x_pos = x_init
         self.y_pos = y_init
         self.heading = heading_init
@@ -11,6 +12,8 @@ class Robot2Led:
 
         self.clr_led1 = clr_led1
         self.clr_led2 = clr_led2
+
+        self.round_pos = round_pos
 
     def draw_robot(self, x_pos, y_pos, heading):
         pass
@@ -36,15 +39,23 @@ class Robot2Led:
         self.x_pos += cos(th / 2) * ( 2 * radius * sin(th/2) )
         self.y_pos += sin(th / 2) * ( 2 * radius * sin(th/2) )
 
-    #def process_sim():
-        '''#simulate_robot()
-        #filtes()
+    def round_robot_properties(self):
+        self.x_pos = round(self.x_pos, self.round_pos) 
+        self.y_pos = round(self.y_pos, self.round_pos) 
+        self.heading = np.round(self.heading, self.round_pos)
+
+    def simulate_process(self, vel_0, vel_1, time_diff):
+        self.simulate_robot(vel_0, vel_1, time_diff)
+        self.round_robot_properties()
         #dead_zones()
         #interpolation_linear()
         #draw_robot()'''
       #  pass
         
 if __name__ == "__main__":
-    robot = Robot2Led(0,0,3.14,2,2, (255,0,0), (0,0,255))
-    robot.simulate_robot(20, 20, 10)
+    robot = Robot2Led(0,0,np.pi,2,2, (255,0,0), (0,0,255), 5)
+    #robot.simulate_robot(20, 20, 10)
+    robot.simulate_process(20, 20, 10)
+    print(f"|x_pos:{robot.x_pos}| y_pos:{robot.y_pos}| heading:{robot.heading}|")
+    robot.simulate_process(0, 0, 0)
     print(f"|x_pos:{robot.x_pos}| y_pos:{robot.y_pos}| heading:{robot.heading}|")
