@@ -31,3 +31,6 @@ class Robot2Led(Robot):
         self.time = time if time != None else ''
         self.robot_center = robot_center if robot_center != None else ''
         self.heading = heading if heading != None else ''
+    
+    def unpack(self):
+        return (self.led1_pos, self.led2_pos, self.time, self.robot_center, self.heading)
