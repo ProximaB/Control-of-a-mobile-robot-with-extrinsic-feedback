@@ -1,7 +1,7 @@
 from math import sin, cos
 import numpy as np
-
-class Robot2Led:
+import math
+class RobotModel2Led:
     def __init__(self, x_init, y_init, heading_init, diamater, axle_len, clr_led1, clr_led2, round_pos):
         self.x_pos = x_init
         self.y_pos = y_init
@@ -34,28 +34,33 @@ class Robot2Led:
 
         # theta
         self.heading += (time_diff / self.axle_len) * (vel_1 - vel_0)
+        self.heading = math.atan2(sin(self.heading), cos(self.heading))
 
         th = self.heading
-        self.x_pos += cos(th / 2) * ( 2 * radius * sin(th/2) )
-        self.y_pos += sin(th / 2) * ( 2 * radius * sin(th/2) )
+        self.x_pos += cos(th / 2) * ( 2 * radius * sin(th/2) * time_diff )
+        self.y_pos += sin(th / 2) * ( 2 * radius * sin(th/2) * time_diff)
 
     def round_robot_properties(self):
         self.x_pos = round(self.x_pos, self.round_pos) 
         self.y_pos = round(self.y_pos, self.round_pos) 
         self.heading = np.round(self.heading, self.round_pos)
 
-    def simulate_process(self, vel_0, vel_1, time_diff):
+    def simulate_robot_process(self, vel_0, vel_1, time_diff):
         self.simulate_robot(vel_0, vel_1, time_diff)
         self.round_robot_properties()
         #dead_zones()
         #interpolation_linear()
         #draw_robot()'''
-      #  pass
+        #pass
         
 if __name__ == "__main__":
-    robot = Robot2Led(0,0,np.pi,2,2, (255,0,0), (0,0,255), 5)
+    robot = RobotModel2Led(0,0,np.pi,10,10, (255,0,0), (0,0,255), 5)
     #robot.simulate_robot(20, 20, 10)
-    robot.simulate_process(20, 20, 10)
+    robot.simulate_robot_process(20, 20, 10)
     print(f"|x_pos:{robot.x_pos}| y_pos:{robot.y_pos}| heading:{robot.heading}|")
-    robot.simulate_process(0, 0, 0)
+    robot.simulate_robot_process(0, 0, 10)
+    print(f"|x_pos:{robot.x_pos}| y_pos:{robot.y_pos}| heading:{robot.heading}|")
+    robot.simulate_robot_process(-10, 10, 10)
+    print(f"|x_pos:{robot.x_pos}| y_pos:{robot.y_pos}| heading:{robot.heading}|")
+    robot.simulate_robot_process(5, 1, 10)
     print(f"|x_pos:{robot.x_pos}| y_pos:{robot.y_pos}| heading:{robot.heading}|")

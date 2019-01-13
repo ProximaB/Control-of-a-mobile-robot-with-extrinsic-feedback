@@ -235,7 +235,6 @@ class Track2Led:
 
                 #zachowaj blob( contour ) dla diody
                 LED[i] = biggest
-
         #print biggest
         #print second_biggest
         # liczenie momentu dla każdego z konturów

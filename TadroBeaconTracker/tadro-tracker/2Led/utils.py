@@ -8,7 +8,7 @@ from logger import *
 
 def save_image(image, fileName, path):
     try:
-        cv.imwrite(f'{path}\\{fileName}.png', image);
+        cv.imwrite(f'{path}\\{fileName}.png', image)
         log_info('Zapis obrazu zakończony powodzeniem.\n'
                 f'File path: {path}\{fileName}.bmp')
     except Exception as error:

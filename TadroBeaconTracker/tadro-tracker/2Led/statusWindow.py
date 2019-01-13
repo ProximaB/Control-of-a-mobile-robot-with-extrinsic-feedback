@@ -16,4 +16,17 @@ class statusWindow:
         #cv.namedWindow(self.win_name, cv.WINDOW_FREERATIO)
         cv.imshow(self.win_name, self.image)
 
+class statusWindowText:
+    def __init__(self, image):
+        self.image = image
+    
+    def drawData(self, position, heading, error, heading_error):
+        x, y = position
+        font = cv.FONT_HERSHEY_SIMPLEX
+        cv.putText(self.image, f'X:   {x}', (1, 33), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'Y:   {y}', (1, 66), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, 'Th:  {0}'.format(round(heading*180.0/np.pi), 2), (1,99), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'E:   {error}', (1,132), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'ThE: {round(heading_error*180.0/np.pi)}', (1,165), font, 1, (255,255,255), 2, cv.LINE_AA)
+
 
