@@ -18,11 +18,21 @@ FONT = cv.FONT_HERSHEY_SIMPLEX
 D_WIDTH = W_WIDTH - D_PADDING_HORIZONTAL[0] - D_PADDING_HORIZONTAL[1]
 D_HEIGHT = W_HEIGHT - D_PADDING_VERTICAL[0] - D_PADDING_VERTICAL[1]
 
+LED_RADIUS = 5
+LED_THICKNES = 7
+ROBOT_THICKENES = 3
+
 def draw_robot_position(robot : Robot2Led, frame):
     sw = statusWindowText(frame)
     sw.drawData((50,50), 1.23, 10, 1.42, (255,0,0))
+    
+    led1_pos, led2_pos, time, robot_center, heading, diamater = robot.unpack()
+    #leds
+    cv.circle(frame, led1_pos, LED_RADIUS, (0, 255, 0), LED_THICKNES)
+    cv.circle(frame, led2_pos, LED_RADIUS, (0, 0, 255), LED_THICKNES)
+    #robot circle
+    cv.circle(frame, robot_center, diamater, (0, 0, 0), ROBOT_THICKENES)
 
-    led1_pos, led2_pos, time, robot_center, heading = robot.unpack()
     
 
 win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
@@ -30,9 +40,9 @@ display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plan
 
 #Symulacja Robota
 # -> wrzucamy model z potrzebnymi parametrami, ktory zwraca pozycje w danym czasie
-
+robot = Robot2Led(20, (500, 500), (480, 480), (520, 520), np.pi/2, 45)
 #rysowanie_pozycji robota
-draw_robot_position(None, display_frame)
+draw_robot_position(robot, display_frame)
 
 # nakładanie display_frame na win_frame
 win_frame[D_PADDING_VERTICAL[0] : - D_PADDING_VERTICAL[1], D_PADDING_HORIZONTAL[0] : - D_PADDING_HORIZONTAL[1], ] = display_frame
