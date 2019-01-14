@@ -31,8 +31,13 @@ def draw_robot_position(robot : Robot2Led, frame):
     cv.circle(frame, led1_pos, LED_RADIUS, (0, 255, 0), LED_THICKNES)
     cv.circle(frame, led2_pos, LED_RADIUS, (0, 0, 255), LED_THICKNES)
     #robot circle
-    cv.circle(frame, robot_center, diamater, (0, 0, 0), ROBOT_THICKENES)
-
+    cv.circle(frame, robot_center, round(diamater/2), (0, 0, 0), ROBOT_THICKENES)
+    #robot front half circle
+    radius=round(diamater/2 - diamater/2 * 0.2); axes = (radius,radius)
+    angle=heading*180/np.pi
+    startAngle=60; endAngle=120#0-180def
+    color=(255, 0, 0)
+    cv.ellipse(frame, robot_center, axes, angle, startAngle, endAngle, color, ROBOT_THICKENES)
     
 
 win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
@@ -40,7 +45,7 @@ display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plan
 
 #Symulacja Robota
 # -> wrzucamy model z potrzebnymi parametrami, ktory zwraca pozycje w danym czasie
-robot = Robot2Led(20, (500, 500), (480, 480), (520, 520), np.pi/2, 45)
+robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), np.pi/2, 75)
 #rysowanie_pozycji robota
 draw_robot_position(robot, display_frame)
 
