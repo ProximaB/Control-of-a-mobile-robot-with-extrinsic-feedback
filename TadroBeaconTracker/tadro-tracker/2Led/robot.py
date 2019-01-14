@@ -1,4 +1,13 @@
 import numpy as np
+from math import sin, cos
+import operator
+
+def round_tuple(a):
+    return tuple(map(round, a))
+
+def add_t(a, b):
+    '''dodanie dwoch punktow, tuple '''
+    return tuple(map(operator.add, a, b))
 
 class Robot():
     def __init__(self, time, robot_center, heading, diamater = 10):
@@ -21,9 +30,10 @@ class Robot():
             raise e
     
 class Robot2Led(Robot):
-    def __init__(self, time, robot_center, led1_pos, led2_pos, heading, diamater=10):
+    def __init__(self, time, robot_center, led1_pos, led2_pos, heading, diamater=10, axle_len=10):
         self.led1_pos = led1_pos if led1_pos != None else ''
         self.led2_pos = led2_pos if led2_pos != None else ''
+        self.axle_len = axle_len
         Robot.__init__(self, time, robot_center, heading, diamater)
 
     def update(self, time, robot_center, led1_pos, led2_pos, heading, diamater=10):
@@ -36,3 +46,9 @@ class Robot2Led(Robot):
     
     def unpack(self):
         return (self.led1_pos, self.led2_pos, self.time, self.robot_center, self.heading, self.diamater)
+
+    def calculate_led_pos(self):
+        led_1_diff = (sin(-self.heading + np.pi/2) * -self.axle_len/2, cos(-self.heading + np.pi/2) * -self.axle_len/2)
+        led_2_diff = (sin(-self.heading + np.pi/2) * self.axle_len/2, cos(-self.heading + np.pi/2) * self.axle_len/2)
+        self.led1_pos = round_tuple(add_t(self.robot_center, led_1_diff))
+        self.led2_pos = round_tuple(add_t(self.robot_center, led_2_diff))
