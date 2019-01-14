@@ -36,7 +36,7 @@ class RobotModel2Led:
             #print('Prędkości kół równe!')
             return
         #angular_vel = 1/axle_len(vel_0 - vel_1)
-        local_axle = 10.0
+        local_axle = 2
         #distance = vel * time_diff
         radius = local_axle / 2.0 * (vel_0 + vel_1) / (vel_1 - vel_0)
 

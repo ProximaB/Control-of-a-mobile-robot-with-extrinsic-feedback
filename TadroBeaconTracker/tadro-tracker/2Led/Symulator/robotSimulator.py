@@ -53,62 +53,129 @@ def draw_robot_position(robot : Robot2Led, frame):
     shape_hw = frame.shape[1::-1]
     cv.rectangle(frame, AREA_POINTS[0], add(shape_hw, AREA_POINTS[1]), 0, AREA_THICKNESS)
 
-win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
-display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
-
-#Symulacja Robota
-# -> wrzucamy model z potrzebnymi parametrami, ktory zwraca pozycje w danym czasie
-robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 40)
-#rysowanie_pozycji robota
-draw_robot_position(robot, display_frame)
-
-model = RobotModel2Led(robot, 10)
-model.simulate_robot_process(0,0,1)
-
-cv.imshow('result', win_frame)
-
-'''for i in range(1, 90, 1):
+def simulation_keys_JKL():
+    win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
     display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
-    print(f'i={i}')
-    if i < 10:
-        model.simulate_robot_process(19, 1, 1)
-    elif i < 30:
-        model.simulate_robot_process(1, 2, 1)
-    elif i < 60:
-        model.simulate_robot_process(-1, 1, 1)
-    else:
-        model.simulate_robot_process(1, 1, 1)
-    '''
-while True:
-    display_frame = np.ones((D_HEIGHT, D_WIDTH, 3),
-                            dtype='uint8') * 255  # white plane
-    key = cv.waitKey(10)
 
-    if key == ord('j'):
-        model.simulate_robot_process(0.2, -0.2, 1.0)
-    elif key == ord('k'):
-        model.simulate_robot_process(-0.2, 0.2, 1.0)
-    elif key == ord('l'):
-        model.simulate_robot_process(1, 1, 1.0)
-    else:
-        pass#model.simulate_robot_process(0, 0, 1.0)
-    print(f'key={key}')
-    robot.calculate_led_pos()
-    #phi = math.atan2(p1[0]-p2[0], p1[1]-p2[1])
+    #Symulacja Robota
+    # -> wrzucamy model z potrzebnymi parametrami, ktory zwraca pozycje w danym czasie
+    robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 40)
+    #rysowanie_pozycji robota
     draw_robot_position(robot, display_frame)
 
+    model = RobotModel2Led(robot, 10)
+    model.simulate_robot_process(0,0,1)
+
+    cv.imshow('result', win_frame)
+
+    '''for i in range(1, 90, 1):
+        display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
+        print(f'i={i}')
+        if i < 10:
+            model.simulate_robot_process(19, 1, 1)
+        elif i < 30:
+            model.simulate_robot_process(1, 2, 1)
+        elif i < 60:
+            model.simulate_robot_process(-1, 1, 1)
+        else:
+            model.simulate_robot_process(1, 1, 1)
+        '''
+    while True:
+        display_frame = np.ones((D_HEIGHT, D_WIDTH, 3),
+                                dtype='uint8') * 255  # white plane
+        key = cv.waitKey(10)
+
+        if key == ord('j'):
+            model.simulate_robot_process(3.9, 3.2, 1.0)
+        elif key == ord('k'):
+            model.simulate_robot_process(-0.9, -0.2, 1.0)
+        elif key == ord('l'):
+            model.simulate_robot_process(1, 1, 1.0)
+        else:
+            pass#model.simulate_robot_process(0, 0, 1.0)
+        robot.calculate_led_pos()
+        #phi = math.atan2(p1[0]-p2[0], p1[1]-p2[1])
+        draw_robot_position(robot, display_frame)
+
+        win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+        # wypisywanie statusu
+        sw = statusWindowText(win_frame)
+        sw.drawData((100,200), 1.23, 10, 1.42)
+        cv.imshow('result', win_frame)
+        #cv.waitKey(300)
+    # nakładanie display_frame na win_frame
     win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+
     # wypisywanie statusu
     sw = statusWindowText(win_frame)
     sw.drawData((100,200), 1.23, 10, 1.42)
+
     cv.imshow('result', win_frame)
-    #cv.waitKey(300)
-# nakładanie display_frame na win_frame
-win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+    cv.waitKey(0)
 
-# wypisywanie statusu
-sw = statusWindowText(win_frame)
-sw.drawData((100,200), 1.23, 10, 1.42)
+def simulation_keys_KL():
+    win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
+    display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
 
-cv.imshow('result', win_frame)
-cv.waitKey(0)
+    #Symulacja Robota
+    # -> wrzucamy model z potrzebnymi parametrami, ktory zwraca pozycje w danym czasie
+    robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 40)
+    #rysowanie_pozycji robota
+    draw_robot_position(robot, display_frame)
+
+    model = RobotModel2Led(robot, 10)
+    model.simulate_robot_process(0,0,1)
+
+    cv.imshow('result', win_frame)
+
+    '''for i in range(1, 90, 1):
+        display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
+        print(f'i={i}')
+        if i < 10:
+            model.simulate_robot_process(19, 1, 1)
+        elif i < 30:
+            model.simulate_robot_process(1, 2, 1)
+        elif i < 60:
+            model.simulate_robot_process(-1, 1, 1)
+        else:
+            model.simulate_robot_process(1, 1, 1)
+        '''
+    L = 0; R = 0
+    while True:
+        display_frame = np.ones((D_HEIGHT, D_WIDTH, 3),
+                                dtype='uint8') * 255  # white plane
+        key = cv.waitKey(10)
+
+        if key == ord('k'):
+            L += 0.2
+        elif key == ord('l'):
+            R += 0.2
+        if key == ord('i'):
+            L -= 0.2
+        elif key == ord('o'):
+            R -= 0.2
+        print(f'L:{L} R:{R}')
+        model.simulate_robot_process(L, R, 1.0)
+        robot.calculate_led_pos()
+        #phi = math.atan2(p1[0]-p2[0], p1[1]-p2[1])
+        draw_robot_position(robot, display_frame)
+
+        win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+        # wypisywanie statusu
+        sw = statusWindowText(win_frame)
+        sw.drawData((100,200), 1.23, 10, 1.42)
+        cv.imshow('result', win_frame)
+        #cv.waitKey(300)
+    # nakładanie display_frame na win_frame
+    win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+
+    # wypisywanie statusu
+    sw = statusWindowText(win_frame)
+    sw.drawData((100,200), 1.23, 10, 1.42)
+
+    cv.imshow('result', win_frame)
+    cv.waitKey(0)
+
+if __name__ == "__main__":
+    simulation_keys_KL()
+    #simulation_keys_JKL()
