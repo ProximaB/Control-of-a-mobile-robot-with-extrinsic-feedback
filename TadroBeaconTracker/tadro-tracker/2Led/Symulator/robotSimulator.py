@@ -33,38 +33,32 @@ def add(a, b):
     '''dodanie dwoch punktow, tuple '''
     return tuple(map(operator.add, a, b))
 def draw_robot_position(robot : Robot2Led, frame):
-    sw = statusWindowText(frame)
-    sw.drawData((50,50), 1.23, 10, 1.42, (255,0,0))
+    #sw = statusWindowText(frame)
+    #sw.drawData((50,50), 1.23, 10, 1.42, (255,0,0))
     
     led1_pos, led2_pos, time, robot_center, heading, diamater = robot.unpack()
     #leds
     cv.circle(frame, led1_pos, LED_RADIUS, (0, 255, 0), LED_THICKNES)
     cv.circle(frame, led2_pos, LED_RADIUS, (0, 0, 255), LED_THICKNES)
     #robot circle
-    cv.circle(frame, robot_center, round(diamater/2), (0, 0, 0), ROBOT_THICKNESS)
+    rnd = tuple(map(math.ceil, robot_center))
+    cv.circle(frame, rnd, round(diamater/2), (0, 0, 0), ROBOT_THICKNESS)
     #robot front half circle
     radius=round(diamater/2 - diamater/2 * 0.2); axes = (radius,radius)
     angle=heading*180/np.pi
     startAngle=60; endAngle=120#0-180def
     color=(255, 0, 0)
-    cv.ellipse(frame, robot_center, axes, angle, startAngle, endAngle, color, ROBOT_THICKNESS)
+    cv.ellipse(frame, rnd, axes, angle, startAngle, endAngle, color, ROBOT_THICKNESS)
     #pole robocze robota
     shape_hw = frame.shape[1::-1]
     cv.rectangle(frame, AREA_POINTS[0], add(shape_hw, AREA_POINTS[1]), 0, AREA_THICKNESS)
-    
-def simulate_robot_detection(frame):
-    for i in range(0, 100):
-        robot = Robot2Led(20, (500-i, 500-i), (500-i, 480-i), (500-i, 520-i), np.pi/2-(np.pi/i), 75)
-        draw_robot_position()
-        cv.imshow('result', frame)
-        cv.waitKey(100)
 
 win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
 display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
 
 #Symulacja Robota
 # -> wrzucamy model z potrzebnymi parametrami, ktory zwraca pozycje w danym czasie
-robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), np.pi/2, 75, 40)
+robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 40)
 #rysowanie_pozycji robota
 draw_robot_position(robot, display_frame)
 
@@ -72,14 +66,33 @@ model = RobotModel2Led(robot, 10)
 model.simulate_robot_process(0,0,1)
 
 cv.imshow('result', win_frame)
-cv.waitKey(0)
-for i in range(1, 400, 20):
-    display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
 
-    if i < 300:
-        model.simulate_robot_process(1, 1, 10)
+'''for i in range(1, 90, 1):
+    display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
+    print(f'i={i}')
+    if i < 10:
+        model.simulate_robot_process(19, 1, 1)
+    elif i < 30:
+        model.simulate_robot_process(1, 2, 1)
+    elif i < 60:
+        model.simulate_robot_process(-1, 1, 1)
     else:
-        model.simulate_robot_process( 0, 0.5, 10)
+        model.simulate_robot_process(1, 1, 1)
+    '''
+while True:
+    display_frame = np.ones((D_HEIGHT, D_WIDTH, 3),
+                            dtype='uint8') * 255  # white plane
+    key = cv.waitKey(10)
+
+    if key == ord('j'):
+        model.simulate_robot_process(0.2, -0.2, 1.0)
+    elif key == ord('k'):
+        model.simulate_robot_process(-0.2, 0.2, 1.0)
+    elif key == ord('l'):
+        model.simulate_robot_process(1, 1, 1.0)
+    else:
+        pass#model.simulate_robot_process(0, 0, 1.0)
+    print(f'key={key}')
     robot.calculate_led_pos()
     #phi = math.atan2(p1[0]-p2[0], p1[1]-p2[1])
     draw_robot_position(robot, display_frame)
@@ -89,8 +102,7 @@ for i in range(1, 400, 20):
     sw = statusWindowText(win_frame)
     sw.drawData((100,200), 1.23, 10, 1.42)
     cv.imshow('result', win_frame)
-    cv.waitKey(500)
-
+    #cv.waitKey(300)
 # nakładanie display_frame na win_frame
 win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
 
