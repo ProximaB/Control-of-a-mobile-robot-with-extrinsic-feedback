@@ -7,8 +7,8 @@ from robot import Robot2Led
 from logger import *
 
 def round_tuple(a):
-    #return tuple(map(math.ceil, a))
-    return tuple(map(round, a))
+    #return tuple(map(round, a))
+    return tuple(map(math.ceil, a))
 
 class RobotModel2Led:
     def __init__(self, robot : Robot2Led, round_pos):
@@ -28,8 +28,8 @@ class RobotModel2Led:
 
         if vel_1 == vel_0:
             print(f'heading:{heading}')
-            x_pos += sin(heading) * vel_0 * time_diff * 4
-            y_pos += cos(heading) * vel_0 * time_diff * 4
+            x_pos += sin(-heading) * vel_0 * time_diff * 1.2
+            y_pos += cos(-heading) * vel_0 * time_diff * 1.2
             print(f'Pozycja w mdl: {sin(-heading) * vel_0 * time_diff}:{cos(-heading) * vel_0 * time_diff}')
             self.robot.robot_center = (x_pos, y_pos)
             return
@@ -50,27 +50,6 @@ class RobotModel2Led:
         y_pos += sin(th / 2) * ( 2 * radius * sin(th/2))
         self.robot.robot_center = (x_pos, y_pos)
 
-    def simulate_robot_2nd_attemp(self, Vl, Vr, time_diff):
-        x_pos, y_pos = self.robot.robot_center
-        heading = self.robot.heading
-        axle_len = self.robot.diamater/2
-        wheel_radius = self.robot.wheel_radius  
-        #angular_vel = 1/axle_len(vel_0 - vel_1)
-        #distance = vel * time_diff
-        
-        # theta
-        heading += wheel_radius/axle_len * (Vr - Vl) * time_diff
-        heading = math.atan2(sin(heading), cos(heading)) #0 - Pi dla kąta w lewo i -Pi, 0 
-        #heading = heading % (2*np.pi)
-        self.robot.heading = heading
-        print(f'heading:{heading}')
-        print(f'self.robot.robot_center:{self.robot.robot_center}')
-
-        x_pos += wheel_radius/2 * (Vr + Vl) * cos(heading) * time_diff # mnoze przez czas, bo calka z predkosci po czasie daje droge
-        y_pos += wheel_radius/2 * (Vr + Vl) * sin(heading) * time_diff
-        self.robot.robot_center = (x_pos, y_pos)
-
-
     def round_robot_properties(self):
         x_pos, y_pos = self.robot.robot_center
         heading = self.robot.heading
@@ -83,9 +62,8 @@ class RobotModel2Led:
         self.robot.heading = heading
 
     def simulate_robot_process(self, vel_0, vel_1, time_diff):
-        self.simulate_robot_2nd_attemp(vel_0, vel_1, time_diff)
-        #self.simulate_robot(vel_0, vel_1, time_diff)
-        #self.round_robot_properties()
+        self.simulate_robot(vel_0, vel_1, time_diff)
+        self.round_robot_properties()
         #self.robot.robot_center = round_tuple(self.robot.robot_center)
         #dead_zones()
         #interpolation_linear()
