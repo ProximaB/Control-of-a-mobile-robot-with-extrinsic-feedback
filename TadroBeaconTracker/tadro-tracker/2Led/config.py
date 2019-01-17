@@ -8,9 +8,9 @@ D = Data()
 
 ######################## SET D CONSTANTS CONFIG OBJECT ######################## 
 #Settings for PID controller
-D.PROPORTIONAL = 0.2 #proporcjonalny
-D.INTEGRAL = 0.0 #całka
-D.DERIVATIVE  = 0.0 #pochodna
+D.PROPORTIONAL = 1.1 #proporcjonalny
+D.INTEGRAL = 1.0 #całka
+D.DERIVATIVE  = 0.001 #pochodna
  
 #Choose leds order, when LEFT_LD = 0 that refer to led on the side wihich robot is turing going forward-left 
 D.LEFT_LD = 0

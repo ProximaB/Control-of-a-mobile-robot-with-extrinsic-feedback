@@ -26,7 +26,7 @@ from utils import *
 # import statusWindow
 from statusWindow import statusWindow
 # import PID 
-from PID import PID
+from PID import PID as pid
 
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
 # sim
@@ -252,20 +252,29 @@ def main_simulation():
     trackerBootstap = TrackerBootstrap(SETTINGS, DATA)
 
     ROBOT = Robot2Led(0,(0,0),0,0,0)
-    simRobot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 50, 5)
+    simRobot = Robot2Led(20, (500, 300), (500, 480), (500, 520), 0, 75, 50, 5)
     model = RobotModel2Led(simRobot)
     sim = robotSimulationEnv(model)
 
-    #PID = PID(CFG.PROPORTIONAL, CFG.INTEGRAL, CFG.DERIVATIVE)
-
+    PID = pid(CFG.PROPORTIONAL, CFG.INTEGRAL, CFG.DERIVATIVE)
+    
     log_info('Inicjalizacja sliderow do thresholdingu.')
     trackerBootstap.setup_thresholds_sliders()
 
     if (CFG.AUTO_LOAD_THRESHOLDS):
         load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
+
     frame = sim.simulate_return_image(-2,0,2)
+    PID.SetPoint = 0
+    PID.setSampleTime(0.01)
+    PID.update(0)
+    V = 1.1
     while(True):#(capture.isOpened()):
-        frame = sim.simulate_return_image(0,0)
+        outTheta = PID.output
+        vel_1 = V * cos(-outTheta)
+        vel_2 = V * sin(-outTheta)
+
+        frame = sim.simulate_return_image(vel_1,vel_2)
         
         DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
@@ -277,20 +286,20 @@ def main_simulation():
         tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
 
         """###################### ROBOT PID CONTROLLING #########################"""
-        sw = statusWindow('Status')
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
-        heading_error = ROBOT.heading - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
-        #DATA.target
-        #PID.
-         
+        heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
+        heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
+        if error < 2: V = 0
+        else: V = 5
+        #else: V = 5.1
+        PID.update(heading_error)
         """######################## OTHER ACTIONS ###############################"""
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
 
         sw = statusWindow('Status')
-        error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
-        heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
-        heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
+        
+        #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
         #ROBOT.print()
         DATA.robot_data.append(ROBOT)   
