@@ -339,15 +339,15 @@ def main_simulation():
         frame = sim.simulate_return_image(vel_1,vel_2)
         
         DATA.base_image = frame
-        """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
-        # Zrobiona w juptyer lab
+        """ Transformacja affiniczna dla prostokąta, określającego pole roboczese """
+        # w przypadku symulacji niepotrzebna 
 
-        """################## ROBOT DETECTION AND TRACKING ######################"""
+        """ ################## ROBOT DETECTION AND TRACKING ###################### """
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
         tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
 
-        """###################### ROBOT PID CONTROLLING #########################"""
+        """ ###################### ROBOT PID CONTROLLING ######################### """
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))

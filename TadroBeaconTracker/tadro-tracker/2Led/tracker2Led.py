@@ -297,7 +297,7 @@ class Track2Led:
         if key_press != 255:
             self.check_key_press(key_press, DATA, SETTINGS)
 
-        # Update the displays:
+        # updatee the displays:
         cv.circle(DATA.base_image, DATA.target, 3, (255,0,0), 2, -1)
         cv.imshow('Tracing and Recognition.', DATA.base_image)
         # Currently selected threshold image:
