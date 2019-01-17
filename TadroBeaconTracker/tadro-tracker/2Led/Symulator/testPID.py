@@ -1,10 +1,10 @@
 import sys
-from RobotSim2Led import RobotSim2Led
+#from robotSimulator import RobotSim2Led
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'C:/Users/barte/Documents/Studia VII/Image_processing/TadroBeaconTracker/tadro-tracker/2Led/')
+import PID
 from PID import PID
-
 import time
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,21 +14,9 @@ from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
 
 def angle(A, B):
     return atan2(B[1]-A[1], B[0]-A[0])
-
+'''
 def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
-    """Self-test PID class
-    .. note::
-        ...
-        for i in range(1, END):
-            pid.update(feedback)
-            output = pid.output
-            if pid.SetPoint > 0:
-                feedback += (output - (1/i))
-            if i>9:
-                pid.SetPoint = 1
-            time.sleep(0.02)
-        ---
-    """
+
     TARGET_POS = (0.0, 10.0)
     TARGET_HEADING = np.pi
     robot = RobotSim2Led(0, 0, 0, 10, 10, None, None, 10)
@@ -62,10 +50,6 @@ def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
         output1 = pid1.output #* 0.02
         output2 = pid2.output #* 0.02 #output ~= 23 dla roznicy pi w stosunku do target = pi, robot 0
         print(f'output1:{output1}, output2:{output2}')
-        '''
-        if pid.SetPoint > 0:
-            feedback += (output - (1/i))
-        '''
 
         if i==2:
             pid1.SetPoint = sqrt( (robot.x_pos-TARGET_POS[0])**2 + (robot.y_pos-TARGET_POS[1]) **2)
@@ -131,7 +115,56 @@ def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
     f.show()
     theta.show()
     input()
+'''
+
+def test_pid2(P = 0.2,  I = 0.0, D= 0.0, L=100):
+
+    pid = PID(P, I, D)
+
+    pid.SetPoint=0.0
+    pid.setSampleTime(0.01)
+
+    END = L
+    feedback = 0
+
+    feedback_list = []
+    time_list = []
+    setpoint_list = []
+
+    for i in range(1, END):
+        pid.update(feedback)
+        output = pid.output
+        if pid.SetPoint > 0:
+            feedback += (output - (1/i))
+        if i>9:
+            pid.SetPoint = 1
+        time.sleep(0.02)
+
+        feedback_list.append(feedback)
+        setpoint_list.append(pid.SetPoint)
+        time_list.append(i)
+
+    time_sm = np.array(time_list)
+    time_smooth = np.linspace(time_sm.min(), time_sm.max(), 300)
+
+    # feedback_smooth = spline(time_list, feedback_list, time_smooth)
+    # Using make_interp_spline to create BSpline
+    helper_x3 = make_interp_spline(time_list, feedback_list)
+    feedback_smooth = helper_x3(time_smooth)
+
+    plt.plot(time_smooth, feedback_smooth)
+    plt.plot(time_list, setpoint_list)
+    plt.xlim((0, L))
+    plt.ylim((min(feedback_list)-0.5, max(feedback_list)+0.5))
+    plt.xlabel('time (s)')
+    plt.ylabel('PID (PV)')
+    plt.title('TEST PID')
+
+    plt.ylim((1-0.5, 1+0.5))
+
+    plt.grid(True)
+    plt.show()
+
 if __name__ == "__main__":
-    #test_pid(1.2, 1, 0.001, L=200)
-    test_pid(4, 0, 0.001, L=200)
+    test_pid2(0.2, 1.3, 0.002, L=50)
 #    test_pid(0.8, L=50)

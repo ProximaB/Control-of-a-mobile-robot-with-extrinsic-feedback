@@ -9,7 +9,7 @@ from functools import partial
 import pickle
 from datetime import datetime
 import time
-
+from scipy.interpolate import interp1d
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
@@ -256,7 +256,8 @@ def main_simulation():
     model = RobotModel2Led(simRobot)
     sim = robotSimulationEnv(model)
 
-    PID = pid(CFG.PROPORTIONAL, CFG.INTEGRAL, CFG.DERIVATIVE)
+    PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1)
+    PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
     
     log_info('Inicjalizacja sliderow do thresholdingu.')
     trackerBootstap.setup_thresholds_sliders()
@@ -265,14 +266,20 @@ def main_simulation():
         load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
 
     frame = sim.simulate_return_image(-2,0,2)
-    PID.SetPoint = 0
-    PID.setSampleTime(0.01)
-    PID.update(0)
-    V = 1.1
+    PID1.SetPoint = 0
+    PID1.setSampleTime(0.01)
+    PID1.update(0)
+    
+    PID2.SetPoint = 0
+    PID2.setSampleTime(0.01)
+    PID2.update(0)
+    Vel = CFG.VEL
     while(True):#(capture.isOpened()):
-        outTheta = PID.output
-        vel_1 = V * cos(-outTheta)
-        vel_2 = V * sin(-outTheta)
+        outTheta = PID1.output
+        outVel = float(PID2.output/1000*Vel)
+
+        vel_1 = outVel * cos(-outTheta)
+        vel_2 = outVel * sin(-outTheta)
 
         frame = sim.simulate_return_image(vel_1,vel_2)
         
@@ -289,10 +296,12 @@ def main_simulation():
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
-        if error < 2: V = 0
-        else: V = 5
+        if error < CFG.SIM_ERROR: Vel = 0
+        else: Vel = CFG.VEL
+        print(f'error:{error}')
         #else: V = 5.1
-        PID.update(heading_error)
+        PID1.update(heading_error)
+        PID2.update(error)
         """######################## OTHER ACTIONS ###############################"""
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
