@@ -34,119 +34,129 @@ class Settings(object):
 class Data(object):
     pass
 
-def setup_thresholds_sliders(SETTINGS, DATA):
-    """Create windows, and set thresholds, Preview, Threshold_i, Sliders_i, i->[0,1] or more"""
-    SETTINGS.thresholds[CFG.LEFT_LD] = {'low_red': 0, 'high_red': 255,
-                            'low_green': 0, 'high_green': 255,
-                            'low_blue': 0, 'high_blue': 255,
-                            'low_hue': 0, 'high_hue': 255,
-                            'low_sat': 0, 'high_sat': 255,
-                            'low_val': 0, 'high_val': 255}
+class TrackerBootstrap:
+    def __init__(self, SETTINGS, DATA):
+        self.SETTINGS = SETTINGS
+        self.DATA = DATA
 
-    SETTINGS.thresholds[CFG.RIGHT_LD] = {'low_red': 0, 'high_red': 255,
-                            'low_green': 0, 'high_green': 255,
-                            'low_blue': 0, 'high_blue': 255,
-                            'low_hue': 0, 'high_hue': 255,
-                            'low_sat': 0, 'high_sat': 255,
-                            'low_val': 0, 'high_val': 255}
+    def setup_thresholds_sliders(self):
+        SETTINGS = self.SETTINGS
+        DATA = self.DATA
 
-    cv.namedWindow('Preview'); cv.moveWindow('Preview', 0, 0)
+        """Create windows, and set thresholds, Preview, Threshold_i, Sliders_i, i->[0,1] or more"""
+        SETTINGS.thresholds[CFG.LEFT_LD] = {'low_red': 0, 'high_red': 255,
+                                'low_green': 0, 'high_green': 255,
+                                'low_blue': 0, 'high_blue': 255,
+                                'low_hue': 0, 'high_hue': 255,
+                                'low_sat': 0, 'high_sat': 255,
+                                'low_val': 0, 'high_val': 255}
 
-    for i in range(len(SETTINGS.thresholds)):
-        cv.namedWindow(f'Threshold_{i}')
-        if CFG.HALF_SIZE:
-            CFG.THR_WIND_OFFSET /= 2
+        SETTINGS.thresholds[CFG.RIGHT_LD] = {'low_red': 0, 'high_red': 255,
+                                'low_green': 0, 'high_green': 255,
+                                'low_blue': 0, 'high_blue': 255,
+                                'low_hue': 0, 'high_hue': 255,
+                                'low_sat': 0, 'high_sat': 255,
+                                'low_val': 0, 'high_val': 255}
 
-        cv.moveWindow(f'Threshold_{i}', CFG.THR_WIND_OFFSET[0] + (i * CFG.THR_WIND_SLF_OFFSET), CFG.THR_WIND_OFFSET[1])
+        cv.namedWindow('Preview'); cv.moveWindow('Preview', 0, 0)
 
-        cv.namedWindow(f'Sliders_{i}')
-        if CFG.HALF_SIZE: 
-            CFG.SLD_WIND_OFFSET /= 2
+        for i in range(len(SETTINGS.thresholds)):
+            cv.namedWindow(f'Threshold_{i}')
+            if CFG.HALF_SIZE:
+                CFG.THR_WIND_OFFSET /= 2
 
-        cv.moveWindow(f'Sliders_{i}', CFG.SLD_WIND_OFFSET[0] + (i * CFG.SLD_WIND_SLF_OFFSET), CFG.SLD_WIND_OFFSET[1])
-    
-    # pomysł na rejestrowanie sliderow z wykorzystaiem partial
-        for thresh_name in SETTINGS.thresholds[i].keys():
-           cv.createTrackbar(thresh_name, 'Sliders_%d' % i, SETTINGS.thresholds[i][thresh_name], 255,
-           partial(change_slider, SETTINGS.thresholds, i, thresh_name))
-    """
-    # jeden ze sposobów stworzenia wielu sliderów
-        def create_slider_callback(thresholds, i, thresh_name):
-            return lambda x: change_slider(thresholds, i, thresh_name, x)
+            cv.moveWindow(f'Threshold_{i}', CFG.THR_WIND_OFFSET[0] + (i * CFG.THR_WIND_SLF_OFFSET), CFG.THR_WIND_OFFSET[1])
 
-        for thresh_name in thresholds[i].keys():
-            cv.createTrackbar(thresh_name, 'Sliders_%d' % i, thresholds[i][thresh_name], 255,
-           (lambda x: create_slider_callback(thresholds, i, thresh_name))(i))
-           #domknciecie, zachowuje context dla i
-    """
-    # Set the method to handle mouse button presses
-    cv.setMouseCallback('Preview', onMouse, DATA)
-    SETTINGS.last_key_pressed = 255
-    #SETTINGS.last_posn = (0,0)
-    #SETTINGS.velocity = 40
-    
-###################### CALLBACK FUNCTIONS #########################
+            cv.namedWindow(f'Sliders_{i}')
+            if CFG.HALF_SIZE: 
+                CFG.SLD_WIND_OFFSET /= 2
 
-def onMouse(event, x, y, flags, DATA):
-    """ Callback dla kliknięcia myszy na okno Previw"""
-    # clicked the left button
-    if event==cv.EVENT_LBUTTONDOWN: 
-        DATA.target = (x,y)
-        print('X, Y:', x, y, "    ", end=' ')
-        (b,g,r) = DATA.processed_image[y,x]
-        print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
-        (h,s,v) = DATA.hsv[y,x]
-        print('H, S, V', int(h), int(s), int(v))
-        DATA.down_coord = (x,y)
+            cv.moveWindow(f'Sliders_{i}', CFG.SLD_WIND_OFFSET[0] + (i * CFG.SLD_WIND_SLF_OFFSET), CFG.SLD_WIND_OFFSET[1])
+        
+        # pomysł na rejestrowanie sliderow z wykorzystaiem partial
+            for thresh_name in SETTINGS.thresholds[i].keys():
+                cv.createTrackbar(thresh_name, 'Sliders_%d' % i, SETTINGS.thresholds[i][thresh_name], 255,
+                    partial(self.change_slider, SETTINGS.thresholds, i, thresh_name))
+        """
+        # jeden ze sposobów stworzenia wielu sliderów
+            def create_slider_callback(thresholds, i, thresh_name):
+                return lambda x: change_slider(thresholds, i, thresh_name, x)
 
+            for thresh_name in thresholds[i].keys():
+                cv.createTrackbar(thresh_name, 'Sliders_%d' % i, thresholds[i][thresh_name], 255,
+            (lambda x: create_slider_callback(thresholds, i, thresh_name))(i))
+            #domknciecie, zachowuje context dla i
+        """
+        # Set the method to handle mouse button presses
+        cv.setMouseCallback('Preview', self.onMouse, None)
+        SETTINGS.last_key_pressed = 255
+        #SETTINGS.last_posn = (0,0)
+        #SETTINGS.velocity = 40
+        
+    ###################### CALLBACK FUNCTIONS #########################
 
-# Function for changing the slider values
-def change_slider(thresholds, i, name, new_threshold):
-    """ Callback do zmiany wartośći sliderów i wyświetlenia ustawionej wartości w konsoli."""
-    thresholds[i][name] = new_threshold
-    print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
-
-
-####################### UTILITY ClASS / FUNCTIONS ##########################
+    def onMouse(self, event, x, y, flags, param):
+        """ Callback dla kliknięcia myszy na okno Previw"""
+        # clicked the left button
+        if event==cv.EVENT_LBUTTONDOWN: 
+            self.DATA.target = (x,y)
+            print('X, Y:', x, y, "    ", end=' ')
+            (b,g,r) = self.DATA.processed_image[y,x]
+            print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
+            (h,s,v) = self.DATA.hsv[y,x]
+            print('H, S, V', int(h), int(s), int(v))
+            self.DATA.down_coord = (x,y)
 
 
-def play_in_loop(capture, frame_counter):
-    ''' Here should be explenation how it work'''
-    frame_counter+=1
-    #If the last frame is reached, reset the capture and the frame_counter
-    CV_CAP_PROP_FRAME_COUNT = 7
-    if frame_counter != capture.get(CV_CAP_PROP_FRAME_COUNT):
-        return False
-    
-    # pominiecie klatek na początku filmu
-    for _ in range(0, CFG.NUM_FRAMES_TO_SKIP):
-        capture.grab()
-    frame_counter = CFG.NUM_FRAMES_TO_SKIP
-    # ustawienie capture na konkretną klatke filmu
-    CV_CAP_PROP_POS_FRAMES = 1
-    capture.set(CV_CAP_PROP_POS_FRAMES, frame_counter)
-    return True
+    # Function for changing the slider values
+    def change_slider(self, thresholds, i, name, new_threshold):
+        """ Callback do zmiany wartośći sliderów i wyświetlenia ustawionej wartości w konsoli."""
+        thresholds[i][name] = new_threshold
+        print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
+
+
+    ####################### UTILITY ClASS / FUNCTIONS ##########################
+
+    def play_in_loop(self, capture, frame_counter):
+        ''' Here should be explenation how it work'''
+        frame_counter+=1
+        #If the last frame is reached, reset the capture and the frame_counter
+        CV_CAP_PROP_FRAME_COUNT = 7
+        if frame_counter != capture.get(CV_CAP_PROP_FRAME_COUNT):
+            return False
+        
+        # pominiecie klatek na początku filmu
+        for _ in range(0, CFG.NUM_FRAMES_TO_SKIP):
+            capture.grab()
+        frame_counter = CFG.NUM_FRAMES_TO_SKIP
+        # ustawienie capture na konkretną klatke filmu
+        CV_CAP_PROP_POS_FRAMES = 1
+        capture.set(CV_CAP_PROP_POS_FRAMES, frame_counter)
+        return True
 
 def main():
     # create settings object to store necessary data for further processing, 
     # we'll pass it to fcns later
     #CFG
     #Inicjalizacja obiektów do przechowywania ustawień i danych
-    
+
     SETTINGS = Settings()
     SETTINGS.thresholds = [{}, {}]
 
     DATA = Data()
     DATA.robot_data = []
     DATA.target = (0,0)
+
     tracker = Track2Led(DATA)
+    trackerBootstap = TrackerBootstrap(SETTINGS, DATA)
+    
 
     ROBOT = Robot2Led(0,(0,0),0,0,0)
 
     #PID = PID(CFG.PROPORTIONAL, CFG.INTEGRAL, CFG.DERIVATIVE)
 
     log_info('Inicjalizacja sliderow do thresholdingu.')
-    setup_thresholds_sliders(SETTINGS, DATA)
+    trackerBootstap.setup_thresholds_sliders()
 
     capture = cv.VideoCapture(CFG.VIDEO_PATH)
     if capture.isOpened() is False:
@@ -180,12 +190,11 @@ def main():
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
         tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
-
+        
         """###################### ROBOT PID CONTROLLING #########################"""
 
          #PID = DATA.target
          
-
         """######################## OTHER ACTIONS ###############################"""
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
@@ -194,7 +203,7 @@ def main():
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
-        ROBOT.print()
+        #ROBOT.print()
         DATA.robot_data.append(ROBOT)   
 
         #zwiększenei licznika klatek o jeden
@@ -202,7 +211,7 @@ def main():
 
         # Jeżeli chcemy aby film był przetwarany w pętli, dla celów testowych.
         if CFG.PLAY_IN_LOOP == True:
-            if play_in_loop(capture, frame_counter) is True:
+            if trackerBootstap.play_in_loop(capture, frame_counter) is True:
                 pass
 
         # pominiętych określonej ilości klatek na cykl
@@ -222,7 +231,7 @@ def main():
     save_image(path_img, f'RobotPath_' + '{datetime.now():%Y%m%d_%H%M%S}}', file_path)
     capture.release()
     cv.destroyAllWindows()
-
+ 
 main()
 
 log_info("Exit")

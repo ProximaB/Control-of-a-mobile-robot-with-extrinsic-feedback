@@ -181,7 +181,7 @@ class Track2Led:
         dist = math.sqrt(abs(int(x2) - int(x1))**2 + abs(int(y2) - int(y1))**2)
 
         result = MIN_DIST < dist < MAX_DIST
-
+    
         return result
 
     def find_2Led(self, DATA, SETTINGS):

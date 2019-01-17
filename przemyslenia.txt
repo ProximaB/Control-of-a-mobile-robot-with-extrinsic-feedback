@@ -1,0 +1,10 @@
+1. Ustawiæ threshold do robota
+2. zapisac do pliku nastawy i w ogóle mo¿na zserializowaæ ca³y obiekt...\
+W ogóle to symulateEnv bedzie mia³o podobn¹ implementacje jak robotTracker.py, tylko bêdzie dodatkowo enkapulowaæ
+sumulator i tracker sam w sobie, ca³¹ knfkracja mo¿e zostaæ znowu wykorzystana
+do skonfugurowania œrodowiska i eewnrualenj mozliwosci wylaczenia symulatora i wstawienai obrazu z kamery.
+
+3. Przejœæ do punktu wejscia symulacji i tam odpalic tracker -
+-> zalozenie, input: frame output: obiekt Robot2Led
+	Po testach przejsc do PID
+4. PID, yt film, implementacja zmiany moedlu i odczytywanie wartosci dane z trackera na input obrazu z symulacji
