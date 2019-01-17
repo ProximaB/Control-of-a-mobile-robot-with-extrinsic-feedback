@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from math import *
 #from scipy.interpolate import spline
-from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
+from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline#  Switched to BSpline
 
 def angle(A, B):
     return atan2(B[1]-A[1], B[0]-A[0])
@@ -112,7 +112,7 @@ def test_pid(P = 0.2,  I = 0.0, D= 0.0, L=100):
     #plt.ylim((1-0.5, 1+0.5))
 
     plt.grid(True)
-    f.show()
+        
     theta.show()
     input()
 '''

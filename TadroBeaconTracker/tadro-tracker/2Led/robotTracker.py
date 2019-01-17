@@ -9,7 +9,9 @@ from functools import partial
 import pickle
 from datetime import datetime
 import time
+import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
+from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
@@ -247,6 +249,30 @@ def main_default():
     capture.release()
     cv.destroyAllWindows()
 
+def draw_plot(feedback_list, setpoint_list, time_list, title, id):
+    time_sm = np.array(time_list)
+    time_smooth = np.linspace(time_sm.min(), time_sm.max(), 300)
+
+    # feedback_smooth = spline(time_list, feedback_list, time_smooth)
+    # Using make_interp_spline to create BSpline
+    helper_x3 = make_interp_spline(time_list, feedback_list)
+    feedback_smooth = helper_x3(time_smooth)
+
+    L = len(time_list)
+    f = plt.figure(id)
+    plt.plot(time_smooth, feedback_smooth)
+    plt.plot(time_list, setpoint_list)
+    #plt.xlim((0, L))
+    #plt.ylim((min(feedback_list)-0.5, max(feedback_list)+0.5))
+    plt.xlabel('time (s)')
+    plt.ylabel('PID (PV)')
+    plt.title(title)
+
+    #plt.ylim((1-0.5, 1+0.5))
+
+    plt.grid(True)
+    return f
+
 def main_simulation():
     # create settings object to store necessary data for further processing, 
     # we'll pass it to fcns later
@@ -285,6 +311,12 @@ def main_simulation():
     PID2.SetPoint = 0
     PID2.setSampleTime(0.01)
     PID2.update(0)
+    
+    feedback_list = [[],[]]
+    time_list =  [[],[]]
+    setpoint_list =  [[],[]]
+
+    wasDrawn = True
     Vel = CFG.VEL
     while(True):#(capture.isOpened()):
         if SETTINGS.START == 0:
@@ -296,10 +328,13 @@ def main_simulation():
             continue
 
         outTheta = PID1.output
-        outVel = float(PID2.output/1000*Vel)
-
+        outVel = float(PID2.output/1000 * Vel)
+        outVel = outVel if outVel < Vel else Vel
+        
         vel_1 = outVel * cos(-outTheta)
         vel_2 = outVel * sin(-outTheta)
+        
+        ##vel_2 = Vel * sin(-outTheta)
 
         frame = sim.simulate_return_image(vel_1,vel_2)
         
@@ -316,19 +351,46 @@ def main_simulation():
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
-        #if (error < CFG.SIM_ERROR and heading_error < 0.2): Vel = 0
-        #else: Vel = CFG.VEL
+        if (error < CFG.SIM_ERROR): Vel = 0
+        else: Vel = CFG.VEL
         print(f'error:{error}')
         print(f'heading_error:{heading_error}')
         #else: V = 5.1  
         PID1.update(heading_error)
         PID2.update(error)
+
         """######################## OTHER ACTIONS ###############################"""
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
 
         sw = statusWindow('Status')
-        
+        if (error > CFG.SIM_ERROR):
+
+            feedback_list[0].append(heading_error)
+            feedback_list[1].append(error)
+
+            setpoint_list[0].append(PID1.SetPoint)
+            setpoint_list[1].append(PID2.SetPoint)
+
+            time_list[0].append(PID1.current_time)
+            time_list[1].append(PID2.current_time)
+
+            wasDrawn = False
+
+        elif wasDrawn == False:
+            p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 'PID CONTROLL HEADING', 1)
+            p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 'PID CONTROLL VELOCITY', 2)
+            #free arrays
+            p1.show()
+            p2.show()
+
+            feedback_list = [[],[]]
+            setpoint_list = [[], []]
+            time_list = [[], []]
+
+            wasDrawn = True
+
+        time.sleep(0.02)
         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
         #ROBOT.print()
