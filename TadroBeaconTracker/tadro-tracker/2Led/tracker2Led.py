@@ -299,7 +299,7 @@ class Track2Led:
 
         # Update the displays:
         cv.circle(DATA.base_image, DATA.target, 3, (255,0,0), 2, -1)
-        cv.imshow('Preview', DATA.base_image)
+        cv.imshow('Tracing and Recognition.', DATA.base_image)
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])

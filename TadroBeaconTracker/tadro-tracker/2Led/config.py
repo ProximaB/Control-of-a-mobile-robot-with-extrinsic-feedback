@@ -35,7 +35,7 @@ D.PLAY_IN_LOOP = True
 D.FRAME_RATE = 0
 
 ######################## 
-D.AUTO_LOAD_THRESHOLDS = False
+D.AUTO_LOAD_THRESHOLDS = True
 
 D.THRESHOLDS_FILE_PATH = r"C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\thresh.txt"
 

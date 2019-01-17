@@ -47,7 +47,7 @@ class TrackerBootstrap:
         SETTINGS = self.SETTINGS
         DATA = self.DATA
 
-        """Create windows, and set thresholds, Preview, Threshold_i, Sliders_i, i->[0,1] or more"""
+        """Create windows, and set thresholds, Tracing and Recognition., Threshold_i, Sliders_i, i->[0,1] or more"""
         SETTINGS.thresholds[CFG.LEFT_LD] = {'low_red': 0, 'high_red': 255,
                                 'low_green': 0, 'high_green': 255,
                                 'low_blue': 0, 'high_blue': 255,
@@ -62,8 +62,11 @@ class TrackerBootstrap:
                                 'low_sat': 0, 'high_sat': 255,
                                 'low_val': 0, 'high_val': 255}
 
-        cv.namedWindow('Preview'); cv.moveWindow('Preview', 0, 0)
+        cv.namedWindow('Tracing and Recognition.'); cv.moveWindow('Tracing and Recognition.', 0, 0)
 
+        #cv.createTrackbar('Slider_heading', 'Tracing and Recognition.', DATA.targetHeading, 360, self.change_heading,)
+        cv.createTrackbar('0 : OFF \n1 : ON','Tracing and Recognition.',0,1, self.switch)
+        
         for i in range(len(SETTINGS.thresholds)):
             cv.namedWindow(f'Threshold_{i}')
             if CFG.HALF_SIZE:
@@ -92,7 +95,7 @@ class TrackerBootstrap:
             #domknciecie, zachowuje context dla i
         """
         # Set the method to handle mouse button presses
-        cv.setMouseCallback('Preview', self.onMouse, None)
+        cv.setMouseCallback('Tracing and Recognition.', self.onMouse, None)
         SETTINGS.last_key_pressed = 255
         #SETTINGS.last_posn = (0,0)
         #SETTINGS.velocity = 40
@@ -118,7 +121,14 @@ class TrackerBootstrap:
         thresholds[i][name] = new_threshold
         print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
 
+    def change_heading(self, new_heading):
+        targetHeading = new_heading * np.pi/180.0
+        self.DATA.targetHeading = targetHeading
+        print(f'targetHeading: {new_heading}')
 
+    def switch(self, onOff):
+        self.SETTINGS.START = onOff
+        print(f'Settings.START: {onOff}')
     ####################### UTILITY ClASS / FUNCTIONS ##########################
 
     def play_in_loop(self, capture, frame_counter):
@@ -150,6 +160,7 @@ def main_default():
     DATA = Data()
     DATA.robot_data = []
     DATA.target = (0,0)
+    DATA.targetHeading = 0
 
     tracker = Track2Led(DATA)
     trackerBootstap = TrackerBootstrap(SETTINGS, DATA)
@@ -243,11 +254,12 @@ def main_simulation():
     #Inicjalizacja obiektów do przechowywania ustawień i danych
     SETTINGS = Settings()
     SETTINGS.thresholds = [{}, {}]
+    SETTINGS.START = 0
 
     DATA = Data()
     DATA.robot_data = []
     DATA.target = (0,0)
-
+    DATA.targetHeading = 0
     tracker = Track2Led(DATA)
     trackerBootstap = TrackerBootstrap(SETTINGS, DATA)
 
@@ -275,6 +287,14 @@ def main_simulation():
     PID2.update(0)
     Vel = CFG.VEL
     while(True):#(capture.isOpened()):
+        if SETTINGS.START == 0:
+            frame = sim.simulate_return_image(0,0)
+            DATA.base_image = frame
+            tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
+            if cv.waitKey(1) & 0xFF == ord('q'):
+                break
+            continue
+
         outTheta = PID1.output
         outVel = float(PID2.output/1000*Vel)
 
@@ -296,10 +316,11 @@ def main_simulation():
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
-        if error < CFG.SIM_ERROR: Vel = 0
-        else: Vel = CFG.VEL
+        #if (error < CFG.SIM_ERROR and heading_error < 0.2): Vel = 0
+        #else: Vel = CFG.VEL
         print(f'error:{error}')
-        #else: V = 5.1
+        print(f'heading_error:{heading_error}')
+        #else: V = 5.1  
         PID1.update(heading_error)
         PID2.update(error)
         """######################## OTHER ACTIONS ###############################"""
