@@ -11,7 +11,7 @@ def round_tuple(a):
     return tuple(map(round, a))
 
 class RobotModel2Led:
-    def __init__(self, robot : Robot2Led, round_pos):
+    def __init__(self, robot : Robot2Led, round_pos = 10):
         self.robot = robot
         self.round_pos = round_pos
 

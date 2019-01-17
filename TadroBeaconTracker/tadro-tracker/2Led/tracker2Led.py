@@ -181,7 +181,7 @@ class Track2Led:
         dist = math.sqrt(abs(int(x2) - int(x1))**2 + abs(int(y2) - int(y1))**2)
 
         result = MIN_DIST < dist < MAX_DIST
-    
+
         return result
 
     def find_2Led(self, DATA, SETTINGS):
@@ -265,7 +265,8 @@ class Track2Led:
                 DATA.robot_center = (int((center_x + second_center_x)/2), int((center_y + second_center_y)/2))
                 cv.circle(DATA.base_image, DATA.robot_center, 10, (255, 255, 0))
                 cv.circle(DATA.threshed_images[0], DATA.robot_center, 10, (255, 255, 0))
-                DATA.heading =  math.atan2(DATA.led1_pos[1]-DATA.led2_pos[1], DATA.led1_pos[0]-DATA.led2_pos[0])
+                DATA.heading =  math.atan2(DATA.led1_pos[0]-DATA.led2_pos[0], DATA.led1_pos[1]-DATA.led2_pos[1]) + -np.pi
+                DATA.heading = -1 * math.atan2(math.sin(DATA.heading), math.cos(DATA.heading))
             else:
                 DATA.robot_center = None
                 DATA.heading = None

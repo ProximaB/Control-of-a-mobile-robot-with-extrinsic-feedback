@@ -34,9 +34,8 @@ def add(a, b):
     return tuple(map(operator.add, a, b))
     
 class robotSimulationEnv:
-    def __init__(self, model : RobotModel2Led, tracker = None):
+    def __init__(self, model : RobotModel2Led):
         self.model = model
-        self.tracker = tracker
 
     def draw_robot_position(self, frame):
         #sw = statusWindowText(frame)
@@ -108,6 +107,9 @@ class robotSimulationEnv:
 
 
     def simulate_return_image(self, vel_0, vel_1, time_diff=1):
+        model = self.model
+        robot = model.robot
+        
         win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
         display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
 
@@ -138,11 +140,17 @@ class robotSimulationEnv:
 if __name__ == "__main__":
     robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 50, 5)
     model = RobotModel2Led(robot, 5)
-    sim = robotSimulationEnv(model, None)
+    sim = robotSimulationEnv(model)
+    class cap:
+        def read(self, x,y,z): return sim.simulate_return_image(x,y,z)
+    
+    capture = cap()
     pic1 = sim.simulate_return_image(0,0,1)
     pic2 = sim.simulate_return_image(2,-2,2)
+    pic3 = capture.read(2,4,4)
     cv.imshow('1', pic1)
     cv.imshow('2', pic2)
+    cv.imshow('3', pic3)
     cv.waitKey(0)
     #sim.simulation_keys_KLIO()
 

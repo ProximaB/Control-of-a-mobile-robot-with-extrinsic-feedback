@@ -28,6 +28,10 @@ from statusWindow import statusWindow
 # import PID 
 from PID import PID
 
+sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
+# sim
+from robotSimulator import *
+
 class Settings(object):
     pass
 
@@ -134,7 +138,7 @@ class TrackerBootstrap:
         capture.set(CV_CAP_PROP_POS_FRAMES, frame_counter)
         return True
 
-def main():
+def main_default():
     # create settings object to store necessary data for further processing, 
     # we'll pass it to fcns later
     #CFG
@@ -190,7 +194,7 @@ def main():
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
         tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
-        
+
         """###################### ROBOT PID CONTROLLING #########################"""
 
          #PID = DATA.target
@@ -231,7 +235,74 @@ def main():
     save_image(path_img, f'RobotPath_' + '{datetime.now():%Y%m%d_%H%M%S}}', file_path)
     capture.release()
     cv.destroyAllWindows()
- 
-main()
 
+def main_simulation():
+    # create settings object to store necessary data for further processing, 
+    # we'll pass it to fcns later
+    #CFG
+    #Inicjalizacja obiektów do przechowywania ustawień i danych
+    SETTINGS = Settings()
+    SETTINGS.thresholds = [{}, {}]
+
+    DATA = Data()
+    DATA.robot_data = []
+    DATA.target = (0,0)
+
+    tracker = Track2Led(DATA)
+    trackerBootstap = TrackerBootstrap(SETTINGS, DATA)
+
+    ROBOT = Robot2Led(0,(0,0),0,0,0)
+    simRobot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 50, 5)
+    model = RobotModel2Led(simRobot)
+    sim = robotSimulationEnv(model)
+
+    #PID = PID(CFG.PROPORTIONAL, CFG.INTEGRAL, CFG.DERIVATIVE)
+
+    log_info('Inicjalizacja sliderow do thresholdingu.')
+    trackerBootstap.setup_thresholds_sliders()
+
+    if (CFG.AUTO_LOAD_THRESHOLDS):
+        load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
+    frame = sim.simulate_return_image(-2,0,2)
+    while(True):#(capture.isOpened()):
+        frame = sim.simulate_return_image(0,0)
+        
+        DATA.base_image = frame
+        """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
+        # Zrobiona w juptyer lab
+
+        """################## ROBOT DETECTION AND TRACKING ######################"""
+        #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
+        #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
+        tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
+
+        """###################### ROBOT PID CONTROLLING #########################"""
+        sw = statusWindow('Status')
+        error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
+        heading_error = ROBOT.heading - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
+        #DATA.target
+        #PID.
+         
+        """######################## OTHER ACTIONS ###############################"""
+        #zapis danych ruchu robota,. rejestracja ruchu wtf?!
+        #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
+
+        sw = statusWindow('Status')
+        error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
+        heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
+        heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
+        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
+        #ROBOT.print()
+        DATA.robot_data.append(ROBOT)   
+
+        if cv.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    path_img = generate_path_image(DATA)
+    #zapis path image na dysk
+    file_path = r'C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\2Led'
+    save_image(path_img, f'RobotPath_' + '{datetime.now():%Y%m%d_%H%M%S}}', file_path)
+    cv.destroyAllWindows() 
+if __name__ == '__main__':
+    main_simulation()
 log_info("Exit")
