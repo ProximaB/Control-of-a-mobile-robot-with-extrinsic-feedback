@@ -61,7 +61,7 @@ class PID:
                 # Remember last time and last error for next calculation
                 self.last_time = self.current_time
                 self.last_error = error
-
+                print(f'PTerm: {self.PTerm} ITerm: {self.ITerm} DTerm: {self.DTerm}')
                 self.output = self.PTerm + (self.Ki * self.ITerm) + (self.Kd * self.DTerm)
                 
     def setKp(self, proportional_gain):

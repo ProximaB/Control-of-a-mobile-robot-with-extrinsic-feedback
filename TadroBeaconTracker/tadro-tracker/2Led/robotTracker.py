@@ -17,6 +17,8 @@ from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
 # load Config
 from config import D as CFG
+
+sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/trackers')
 # import tracker class
 from tracker2Led import Track2Led
 # import Robot class
@@ -170,8 +172,24 @@ def main_default():
 
     ROBOT = Robot2Led(0,(0,0),0,0,0)
 
-    #PID = PID(CFG.PROPORTIONAL, CFG.INTEGRAL, CFG.DERIVATIVE)
+    PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1)
+    PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
+    
+    PID1.SetPoint = 0
+    PID1.setSampleTime(0.01)
+    PID1.update(0)
 
+    PID2.SetPoint = 0
+    PID2.setSampleTime(0.01)
+    PID2.update(0)
+
+    feedback_list = [[],[]]
+    time_list =  [[],[]]
+    setpoint_list =  [[],[]]
+
+    wasDrawn = True
+    Vel = CFG.VEL
+    
     log_info('Inicjalizacja sliderow do thresholdingu.')
     trackerBootstap.setup_thresholds_sliders()
 
@@ -198,6 +216,23 @@ def main_default():
             log_warn('Frame not grabbed. Continue...')
             capture = cv.VideoCapture(CFG.VIDEO_PATH)
             continue
+        
+        if SETTINGS.START == 0:
+            frame = sim.simulate_return_image(0,0)
+            DATA.base_image = frame
+            tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
+            if cv.waitKey(1) & 0xFF == ord('q'):
+                break
+            continue
+
+        outTheta = PID1.output
+        outVel = float(PID2.output/1000 * Vel)
+        outVel = outVel if outVel < Vel else Vel
+        
+        vel_1 = outVel * cos(-outTheta)
+        vel_2 = outVel * sin(-outTheta)
+        
+        print(f'Vl: {vel_1}, Vr: {vel_2}')
         
         DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
@@ -303,15 +338,18 @@ def main_simulation():
     if (CFG.AUTO_LOAD_THRESHOLDS):
         load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
 
-    frame = sim.simulate_return_image(-2,0,2)
+    frame = sim.simulate_return_image(0,0,0.01)
+    #angular controll
     PID1.SetPoint = 0
     PID1.setSampleTime(0.01)
     PID1.update(0)
-    
+    PID1.setWindup(5.0)
+
     PID2.SetPoint = 0
     PID2.setSampleTime(0.01)
     PID2.update(0)
-    
+    PID2.setWindup(5.0)
+
     feedback_list = [[],[]]
     time_list =  [[],[]]
     setpoint_list =  [[],[]]
@@ -320,15 +358,17 @@ def main_simulation():
     Vel = CFG.VEL
     while(True):#(capture.isOpened()):
         if SETTINGS.START == 0:
-            frame = sim.simulate_return_image(0,0)
+            frame = sim.simulate_return_image(0,0,0.01)
             DATA.base_image = frame
             tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
             if cv.waitKey(1) & 0xFF == ord('q'):
                 break
             continue
 
+        h, w = DATA.base_image.shape[:2]
+        p = math.sqrt(h**2 + w**2)
         outTheta = PID1.output
-        outVel = float(PID2.output/1000 * Vel)
+        outVel = float(PID2.output/p * Vel)
         outVel = outVel if outVel < Vel else Vel
         
         vel_1 = outVel * cos(-outTheta)
@@ -336,7 +376,7 @@ def main_simulation():
         
         ##vel_2 = Vel * sin(-outTheta)
 
-        frame = sim.simulate_return_image(vel_1,vel_2)
+        frame = sim.simulate_return_image(vel_1,vel_2, 0.01)
         
         DATA.base_image = frame
         """ Transformacja affiniczna dla prostokąta, określającego pole roboczese """
@@ -351,7 +391,8 @@ def main_simulation():
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
-        if (error < CFG.SIM_ERROR): Vel = 0
+        if (error < CFG.SIM_ERROR): Vel = 0.0
+        #elif (heading_error > 0.2) : Vel = 2.0
         else: Vel = CFG.VEL
         print(f'error:{error}')
         print(f'heading_error:{heading_error}')
@@ -361,7 +402,7 @@ def main_simulation():
 
         """######################## OTHER ACTIONS ###############################"""
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
-        #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
+        #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))
 
         sw = statusWindow('Status')
         if (error > CFG.SIM_ERROR):
@@ -374,6 +415,9 @@ def main_simulation():
 
             time_list[0].append(PID1.current_time)
             time_list[1].append(PID2.current_time)
+
+            img = generate_path_image(DATA, step = 3)#(DATA.base_image, DATA.robot_data) #rysuj droge
+            cv.imshow('Robot Path', img)
 
             wasDrawn = False
 
@@ -388,13 +432,15 @@ def main_simulation():
             setpoint_list = [[], []]
             time_list = [[], []]
 
+            DATA.robot_data = []
+
             wasDrawn = True
 
         time.sleep(0.02)
         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
         #ROBOT.print()
-        DATA.robot_data.append(ROBOT)   
+        DATA.robot_data.append(ROBOT.unpack())   
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
