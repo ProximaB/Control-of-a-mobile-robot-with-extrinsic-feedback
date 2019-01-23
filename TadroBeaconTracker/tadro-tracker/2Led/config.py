@@ -9,8 +9,8 @@ D = Data()
 ######################## SET D CONSTANTS CONFIG OBJECT ######################## 
 #Settings for PID controller
 #angular controll
-D.PROPORTIONAL1 = 1.01 #proporcjonalny
-D.INTEGRAL1 = 1.3 #całka
+D.PROPORTIONAL1 = 1.0 #proporcjonalny
+D.INTEGRAL1 = 1.0 #całka
 D.DERIVATIVE1 = 0.001 #pochodna
 
 D.PROPORTIONAL2 = 1
