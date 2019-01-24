@@ -56,3 +56,19 @@ class Robot2Led(Robot):
         led_2_diff = (sin(-self.heading) * self.axle_len/2.0, cos(-self.heading) * self.axle_len/2.0)
         self.led1_pos = round_tuple(add_t(self.robot_center, led_1_diff))
         self.led2_pos = round_tuple(add_t(self.robot_center, led_2_diff))
+
+class RobotArruco(Robot):
+    def __init__(self, time, robot_center, heading, diamater=10, axle_len=10, wheel_radius=5):
+        self.axle_len = axle_len
+        self.wheel_radius = wheel_radius
+        Robot.__init__(self, time, robot_center, heading, diamater)
+
+    def update(self, time, robot_center, heading, diamater=10, wheel_radius=5):
+        self.time = time if time != None else ''
+        self.robot_center = robot_center if robot_center != None else ''
+        self.heading = heading if heading != None else ''
+        self.diamater = diamater if diamater != None else ''
+        self.wheel_radius = wheel_radius
+    
+    def unpack(self):
+        return (self.time, self.robot_center, self.heading, self.diamater, self.axle_len)

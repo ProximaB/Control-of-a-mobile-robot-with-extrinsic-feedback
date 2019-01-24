@@ -55,7 +55,7 @@ def generate_path_image(DATA, step = 1):
     #makes the output image produce RGBA (A for Alpha, allowing for transparent pixels)
     #instead of just RBG like the input image. 4 channels instead of three
     shape = (DATA.processed_image.shape[0], DATA.processed_image.shape[1], 3)
-    path_image = np.zeros(shape)
+    path_image = np.ones(shape)
     col = (0,0,0)
     counter = 0
    # for i, unpackedRobot in enumerate(DATA.robot_data):
@@ -93,11 +93,11 @@ def generate_path_image(DATA, step = 1):
         #angle of arrow in radians
         arrow_angle = .3
         #rotating the led1 LED about the front LED to make an arrow
-        right_shift_led1_x = int(led2[0] + (led1[0] - led2[0])*math.cos(arrow_angle) - (led1[1] - led2[1])*math.sin(arrow_angle))
-        right_shift_led1_y = int(led2[1] + (led1[1] - led2[1])*math.cos(arrow_angle) - (led1[0] - led2[0])*math.sin(arrow_angle))
+        #right_shift_led1_x = int(led2[0] + (led1[0] -right_shift_led1_x = int(led2[0] + (led1[0] -right_shift_led1_x = int(led2[0] + (led1[0] - led2[0])*math.cos(arrow_angle) - (led1[1] - led2[1])*math.sin(arrow_angle))
+        #right_shift_led1_y = int(led2[1] + (led1[1] - led2[1])*math.cos(arrow_angle) - (led1[0] - led2[0])*math.sin(arrow_angle))
 
-        left_shift_led1_x = int(led2[0] + (led1[0] - led2[0])*math.cos(-1*arrow_angle) - (led1[1] - led2[1])*math.sin(-1*arrow_angle))
-        left_shift_led1_y = int(led2[1] + (led1[1] - led2[1])*math.cos(-1*arrow_angle) - (led1[0] - led2[0])*math.sin(-1*arrow_angle))
+        #left_shift_led1_x = int(led2[0] + (led1[0] - led2[0])*math.cos(-1*arrow_angle) - (led1[1] - led2[1])*math.sin(-1*arrow_angle))
+        #left_shift_led1_y = int(led2[1] + (led1[1] - led2[1])*math.cos(-1*arrow_angle) - (led1[0] - led2[0])*math.sin(-1*arrow_angle))
         
         centre = robot_center
         head_point = add_t(centre, (20*math.cos(heading), 20*math.sin(heading)))

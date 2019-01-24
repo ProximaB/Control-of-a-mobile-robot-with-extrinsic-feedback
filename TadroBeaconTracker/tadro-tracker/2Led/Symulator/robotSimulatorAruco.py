@@ -1,4 +1,4 @@
-﻿import cv2 as cv
+import cv2 as cv
 import numpy as np
 import sys
 import operator
@@ -9,7 +9,7 @@ sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
 from config import D as CFG
 from logger import *
 from statusWindow import statusWindowText
-from robot import Robot2Led
+from robot import RobotAruco
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
 from RobotModel2Led import RobotModel2Led
 # class robotSimulator:
@@ -35,39 +35,44 @@ def add(a, b):
     '''dodanie dwoch punktow, tuple '''
     return tuple(map(operator.add, a, b))
     
-class robotSimulationEnv:
-    def __init__(self, model : RobotModel2Led):
+class robotSimulationEnvAruco:
+    def __init__(self, model : RobotAruco, aruco_img):
         self.model = model
+        self.aruco_img = cv.cvtColor(aruco_img, cv.COLOR_GRAY2BGR)
 
-        self.aruco_corners_img = []
-        aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
-        for _id in CFG.CORNER_IDS:
-            aruco_img = aruco.drawMarker(aruco_dict, id = _id, sidePixels = CFG.SIDEPIXEL_ARUCO)
-            self.aruco_corners_img.append(cv.cvtColor(aruco_img, cv.COLOR_GRAY2BGR))
+    def rotate_bound(self, image, angle):
+
+        (h, w) = image.shape[:2]
+        (cX, cY) = (w // 2, h // 2)
+    
+        M = cv.getRotationMatrix2D((cX, cY), -angle, 1.0)
+        cos = np.abs(M[0, 0])
+        sin = np.abs(M[0, 1])
+    
+        nW = int((h * sin) + (w * cos))
+        nH = int((h * cos) + (w * sin))
+    
+        M[0, 2] += (nW / 2) - cX
+        M[1, 2] += (nH / 2) - cY
+    
+        return cv.warpAffine(image, M, (nW, nH))
 
     def draw_robot_position(self, frame):
-        # draw arruco corner markers
-        ar_arr = self.aruco_corners_img
-        h, w, c = ar_arr[0].shape
-        
-        m = CFG.MARGIN_ARUCO
-        frame[m:h+m, m:w+m] = ar_arr[0]   # UL
-        frame[m:h+m, -w-m:-m] = ar_arr[1] # UR
-        frame[-h-m:-m, -w-m:-m] = ar_arr[2]   # BR
-        frame[-h-m:-m, m:w+m] = ar_arr[3]   # BL
-        #frame[10:h:,-w-10:-10] = ar_arr[1]
-        #frame[10:h,10:w] = ar_arr[2]
-        #frame[10:h,10:w] = ar_arr[3]
-
         #sw = statusWindowText(frame)
         #sw.drawData((50,50), 1.23, 10, 1.42, (255,0,0))
         robot =  self.model.robot
-        led1_pos, led2_pos, time, robot_center, heading, diamater, axle_len = robot.unpack()
-        #leds
-        cv.circle(frame, led1_pos, LED_RADIUS, (0, 255, 0), LED_THICKNES)
-        cv.circle(frame, led2_pos, LED_RADIUS, (0, 0, 255), LED_THICKNES)
-        #robot circle
+        time, robot_center, heading, diamater, axle_len = robot.unpack()
+        #draw aruco
+
+        h ,w, c= self.aruco_img.shape
+
+
         rnd = tuple(map(round, robot_center))
+        dst = self.rotate_bound(self.aruco_img, robot.heading*180/np.pi)
+        hd ,wd, cd= dst.shape
+        hh, ww = round(hd/2), round(wd/2)
+        frame[rnd[0]-hh: rnd[0]+hh, rnd[1]-ww: rnd[1]+ww] = dst
+        #robot circle    
         cv.circle(frame, rnd, round(diamater/2), (0, 0, 0), ROBOT_THICKNESS)
         #robot front half circle
         #radiu jest loiczny od roztawu kół nie od szerokosci robota.. któa jest wykorzystywana do rysowania
@@ -105,7 +110,6 @@ class robotSimulationEnv:
 
             print(f'L:{L} R:{R}')
             model.simulate_robot_process(L, R, 1.0)
-            robot.calculate_led_pos()
 
             self.draw_robot_position(display_frame)
             #wyświetlanie okna prezentującego symulacje i ważne parametry robota
@@ -138,7 +142,6 @@ class robotSimulationEnv:
         #rysowanie_pozycji robota
         print(f'L:{vel_0} R:{vel_1}')
         model.simulate_robot_process(vel_0, vel_1, time_diff)
-        robot.calculate_led_pos()
 
         self.draw_robot_position(display_frame)
         
@@ -150,21 +153,20 @@ class robotSimulationEnv:
         sw = statusWindowText(win_frame)
         sw.drawData(robot.robot_center, robot.heading, 0, 0)
         #wyswietlenie na oknie
-        cv.imshow('Simulator Window', win_frame)
+        cv.imshow('result', win_frame)
         # nakładanie display_frame na win_frame
         win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
         #wyswitlanie podglądu symulacji w osobnym oknie
-        cv.imshow('Simulator Window', win_frame)
+        cv.imshow('result', win_frame)
 
         return display_frame
 
 if __name__ == "__main__":
-    aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
-    arruco_img = aruco.drawMarker(aruco_dict, id = 1, sidePixels = 30)
-
-    robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 50, 5)
+    aruco_dict = aruco.Dictionary_get(CFG.aruco_DICT)
+    aruco_img = aruco.drawMarker(aruco_dict, id = 1, sidePixels = 30)
+    robot = Robotaruco(20, (500, 500), 0, 75, 50, 5)
     model = RobotModel2Led(robot, 5)
-    sim = robotSimulationEnv(model)
+    sim = robotSimulationEnvaruco(model, aruco_img)
     class cap:
         def read(self, x,y,z): return sim.simulate_return_image(x,y,z)
     

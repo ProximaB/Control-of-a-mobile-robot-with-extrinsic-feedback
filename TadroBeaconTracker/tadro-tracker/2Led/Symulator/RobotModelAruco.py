@@ -1,3 +1,3 @@
 import cv2 as cv
-class RobotModelArruco:
+class RobotModelAruco:
     pass

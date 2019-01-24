@@ -21,6 +21,7 @@ from config import D as CFG
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/trackers')
 # import tracker class
 from tracker2Led import Track2Led
+from trackerArruco import TrackArruco
 # import Robot class
 from robot import *
 # custom simpl logger
@@ -160,17 +161,53 @@ def main_default():
 
     SETTINGS = Settings()
     SETTINGS.thresholds = [{}, {}]
+    SETTINGS.START = 0
 
     DATA = Data()
     DATA.robot_data = []
     DATA.target = (0,0)
     DATA.targetHeading = 0
 
-    tracker = Track2Led(DATA)
-    trackerBootstap = TrackerBootstrap(SETTINGS, DATA)
-    
+    if CFG.TRACKER_TYPE is CFG.LED_ENUM:
+        tracker = Track2Led(DATA)
+        trackerBootstrap = TrackerBootstrap(SETTINGS, DATA)
+    else:
+        tracker = TrackArruco(DATA)
 
-    ROBOT = Robot2Led(0,(0,0),0,0,0)
+    ROBOT = Robot2Led(0, (0,0), 0, 0, 0)
+
+    if CFG.SIMULATION:
+        simRobot = Robot2Led(20, (500, 300), (500, 480), (500, 520), 0, 75, 50, 5)
+        model = RobotModel2Led(simRobot)
+        sim = robotSimulationEnv(model)
+        if CFG.CAMERA_FEEDBACK:
+            sim.simulate_return_image(0,0,0.01)
+            capture = cv.VideoCapture(CFG.VIDEO_PATH)
+        #else:
+            #capture = sim.simulate_return_image(0,0,0.01)
+    else:
+        capture = cv.VideoCapture(CFG.VIDEO_PATH)
+
+        if capture.isOpened() is False:
+            log_error("Błąd podczas otwarcia filmu lub inicjalizacji kamery")
+            return
+        else:
+            log_info("Plik został poprawnie otwarty / Kamera zostala poprawnie zainicjalizowana.")
+
+        
+        # pominiecie klatek na początku filmu
+        for _ in range(0, CFG.NUM_FRAMES_TO_SKIP):
+            capture.grab()
+
+        # prawdziwy numer klatki
+        frame_counter = CFG.NUM_FRAMES_TO_SKIP
+
+    
+    log_info('Inicjalizacja sliderow do thresholdingu.')
+    trackerBootstrap.setup_thresholds_sliders()
+
+    if (CFG.AUTO_LOAD_THRESHOLDS):
+        load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
 
     PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1)
     PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
@@ -178,10 +215,12 @@ def main_default():
     PID1.SetPoint = 0
     PID1.setSampleTime(0.01)
     PID1.update(0)
+    PID1.setWindup(5.0)
 
     PID2.SetPoint = 0
     PID2.setSampleTime(0.01)
     PID2.update(0)
+    PID2.setWindup(5.0)
 
     feedback_list = [[],[]]
     time_list =  [[],[]]
@@ -190,50 +229,44 @@ def main_default():
     wasDrawn = True
     Vel = CFG.VEL
     
-    log_info('Inicjalizacja sliderow do thresholdingu.')
-    trackerBootstap.setup_thresholds_sliders()
+    while(True):
+        if CFG.SIMULATION:
+            if SETTINGS.START == 0:
+                if CFG.CAMERA_FEEDBACK:
+                    sim.simulate_return_image(0,0,0.01)
+                    grabbed, frame = capture.read()
+                else:
+                    frame = sim.simulate_return_image(0,0,0.01)
+                DATA.base_image = frame
 
-    capture = cv.VideoCapture(CFG.VIDEO_PATH)
-    if capture.isOpened() is False:
-        log_error("Błąd podczas otwarcia filmu lub inicjalizacji kamery")
-        return
-    else:
-        log_info("Plik został poprawnie otwarty / Kamera zostala poprawnie zainicjalizowana.")
+                tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
+                if cv.waitKey(1) & 0xFF == ord('q'):
+                    break
+                continue
+        else:
+            grabbed, frame = capture.read()
+            if not grabbed:
+                log_warn('Frame not grabbed. Continue...')
+                capture = cv.VideoCapture(CFG.VIDEO_PATH)
+                continue
 
-    if (CFG.AUTO_LOAD_THRESHOLDS):
-        load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
-
-    # pominiecie klatek na początku filmu
-    for _ in range(0, CFG.NUM_FRAMES_TO_SKIP):
-        capture.grab()
-
-    # prawdziwy numer klatki
-    frame_counter = CFG.NUM_FRAMES_TO_SKIP
-
-    while(True):#(capture.isOpened()):
-        grabbed, frame = capture.read()
-        if not grabbed:
-            log_warn('Frame not grabbed. Continue...')
-            capture = cv.VideoCapture(CFG.VIDEO_PATH)
-            continue
-        
-        if SETTINGS.START == 0:
-            frame = sim.simulate_return_image(0,0)
-            DATA.base_image = frame
-            tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
-            if cv.waitKey(1) & 0xFF == ord('q'):
-                break
-            continue
-
+        h, w = DATA.base_image.shape[:2]
+        p = math.sqrt(h**2 + w**2)
         outTheta = PID1.output
-        outVel = float(PID2.output/1000 * Vel)
+        outVel = float(PID2.output/p * Vel)
         outVel = outVel if outVel < Vel else Vel
         
         vel_1 = outVel * cos(-outTheta)
         vel_2 = outVel * sin(-outTheta)
         
-        print(f'Vl: {vel_1}, Vr: {vel_2}')
-        
+        # print(f'Vl: {vel_1}, Vr: {vel_2}')
+        if CFG.SIMULATION:
+            if CFG.CAMERA_FEEDBACK:
+                    sim.simulate_return_image(vel_1, vel_2, 0.01)
+                    grabbed, frame = capture.read()
+            else:
+                frame = sim.simulate_return_image(vel_1, vel_2, 0.01)
+
         DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
@@ -241,46 +274,89 @@ def main_default():
         """################## ROBOT DETECTION AND TRACKING ######################"""
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
-        tracker.detectAndTrack2LedRobot(SETTINGS, DATA, ROBOT)
+        tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
 
         """###################### ROBOT PID CONTROLLING #########################"""
 
-         #PID = DATA.target
+        error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
+        heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
+        heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
+        if (error < CFG.SIM_ERROR): Vel = 0.0
+        #elif (heading_error > 0.2) : Vel = 2.0
+        else: Vel = CFG.VEL
+        print(f'error:{error}')
+        print(f'heading_error:{heading_error}')
+        #else: V = 5.1  
+        PID1.update(heading_error)
+        PID2.update(error)
          
         """######################## OTHER ACTIONS ###############################"""
         #zapis danych ruchu robota,. rejestracja ruchu wtf?!
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
-
         sw = statusWindow('Status')
-        error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
-        heading_error = ROBOT.heading - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
+        if (error > CFG.SIM_ERROR):
+
+            feedback_list[0].append(heading_error)
+            feedback_list[1].append(error)
+
+            setpoint_list[0].append(PID1.SetPoint)
+            setpoint_list[1].append(PID2.SetPoint)
+
+            time_list[0].append(PID1.current_time)
+            time_list[1].append(PID2.current_time)
+
+            img = generate_path_image(DATA, step = 3)#(DATA.base_image, DATA.robot_data) #rysuj droge
+            cv.imshow('Robot Path', img)
+
+            wasDrawn = False
+
+        elif wasDrawn == False:
+            p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 'PID CONTROLL HEADING', 1)
+            p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 'PID CONTROLL VELOCITY', 2)
+            #free arrays
+            p1.show()
+            p2.show()
+
+            feedback_list = [[],[]]
+            setpoint_list = [[], []]
+            time_list = [[], []]
+
+            DATA.robot_data = []
+
+            wasDrawn = True
+        
+        if CFG.SIMULATION:
+            pass
+        else:
+            #zwiększenei licznika klatek o jeden
+            frame_counter += 1
+
+            # Jeżeli chcemy aby film był przetwarany w pętli, dla celów testowych.
+            if CFG.PLAY_IN_LOOP == True:
+                if trackerBootstap.play_in_loop(capture, frame_counter) is True:
+                    pass
+
+            # pominiętych określonej ilości klatek na cykl
+                for _ in range(0, CFG.FRAME_RATE):
+                    capture.grab()
+                    frame_counter += 1
+                    #done abowe
+                    #increment the frame counter, domyslnie = 0
+                    # frame_counter += CFG.FRAME_RATE
+
+        time.sleep(0.02)
+        #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
         #ROBOT.print()
-        DATA.robot_data.append(ROBOT)   
-
-        #zwiększenei licznika klatek o jeden
-        frame_counter += 1
-
-        # Jeżeli chcemy aby film był przetwarany w pętli, dla celów testowych.
-        if CFG.PLAY_IN_LOOP == True:
-            if trackerBootstap.play_in_loop(capture, frame_counter) is True:
-                pass
-
-        # pominiętych określonej ilości klatek na cykl
-        for _ in range(0, CFG.FRAME_RATE):
-            capture.grab()
-            frame_counter += 1
-        #done abowe
-        #increment the frame counter, domyslnie = 0
-        #frame_counter += CFG.FRAME_RATE
+        DATA.robot_data.append(ROBOT.unpack())   
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
     
     path_img = generate_path_image(DATA)
     #zapis path image na dysk
-    file_path = r'C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\2Led'
-    save_image(path_img, f'RobotPath_' + '{datetime.now():%Y%m%d_%H%M%S}}', file_path)
+    file_path = r'C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\2Led\paths'
+    save_image(path_img, f'RobotPath_' + f'{datetime.now():%Y%m%d_%H%M%S}', file_path)
     capture.release()
     cv.destroyAllWindows()
 
@@ -321,10 +397,14 @@ def main_simulation():
     DATA.robot_data = []
     DATA.target = (0,0)
     DATA.targetHeading = 0
-    tracker = Track2Led(DATA)
-    trackerBootstap = TrackerBootstrap(SETTINGS, DATA)
 
-    ROBOT = Robot2Led(0,(0,0),0,0,0)
+    if CFG.TRACKER_TYPE is CFG.LED_ENUM:
+        tracker = Track2Led(DATA)
+        trackerBootstrap = TrackerBootstrap(SETTINGS, DATA)
+    else:
+        tracker = TrackArruco(DATA)
+
+    ROBOT = Robot2Led(0, (0,0), 0, 0, 0)
     simRobot = Robot2Led(20, (500, 300), (500, 480), (500, 520), 0, 75, 50, 5)
     model = RobotModel2Led(simRobot)
     sim = robotSimulationEnv(model)
@@ -333,7 +413,7 @@ def main_simulation():
     PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
     
     log_info('Inicjalizacja sliderow do thresholdingu.')
-    trackerBootstap.setup_thresholds_sliders()
+    trackerBootstrap.setup_thresholds_sliders()
 
     if (CFG.AUTO_LOAD_THRESHOLDS):
         load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
@@ -451,5 +531,6 @@ def main_simulation():
     save_image(path_img, f'RobotPath_' + '{datetime.now():%Y%m%d_%H%M%S}}', file_path)
     cv.destroyAllWindows() 
 if __name__ == '__main__':
-    main_simulation()
+    #main_simulation()
+    main_default()
 log_info("Exit")

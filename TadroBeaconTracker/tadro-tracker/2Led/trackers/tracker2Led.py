@@ -275,7 +275,7 @@ class Track2Led:
             DATA.robot_center = None
             DATA.heading = None
 
-    def detectAndTrack2LedRobot(self, SETTINGS, DATA, ROBOT):
+    def detectAndTrack(self, SETTINGS, DATA, ROBOT):
         """ this function organizes all of the processing
             done for each image from a camera type 2Led robot """
 
