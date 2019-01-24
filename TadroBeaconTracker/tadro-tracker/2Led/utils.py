@@ -181,6 +181,6 @@ def map_img_to_real(valueImg, imgMax, realMax):
     return valueImg * realMax/float(imgMax)
 
 def map_point_to_real(pointImg, imgMaxTuple, realMaxTuple):
-    x = round(pointImg[0] * realMaxTuple[0]/float(imgMaxTuple[0]))
-    y = round(pointImg[1] * realMaxTuple[1]/float(imgMaxTuple[1]))
+    x = round(pointImg[0] * realMaxTuple[1]/float(imgMaxTuple[1]))
+    y = round(pointImg[1] * realMaxTuple[0]/float(imgMaxTuple[0]))
     return (x, y)

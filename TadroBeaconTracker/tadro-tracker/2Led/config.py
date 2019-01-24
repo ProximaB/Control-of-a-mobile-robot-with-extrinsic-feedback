@@ -15,7 +15,7 @@ D.AREA_WIDTH_REAL = 100 #[mm]
 # Robot settings 
 D.ROB_CNTR = (50, 25) # x, y
 D.HEADING = 0
-D.DIAMETER = 50
+D.DIAMETER = 15
 D.AXLE_LEN = 10
 D.WHEEL_RADIUS = 5
 # Simulator settings
@@ -69,12 +69,12 @@ D.INTEGRAL2 = 1.4
 D.DERIVATIVE2  = 0.001
 
 D.VEL = 1000
-D.SIM_ERROR = 5
+D.SIM_ERROR = 3
  
 #Choose leds order, when LEFT_LD = 0 that refer to led on the side wihich robot is turing going forward-left 
-D.LEFT_LD = 1
+D.LEFT_LD = 0
 
-D.RIGHT_LD = 0
+D.RIGHT_LD = 1
 
 ######################## 
 #D.VIDEO_PATH = 0 #1 eeye3 mch faster

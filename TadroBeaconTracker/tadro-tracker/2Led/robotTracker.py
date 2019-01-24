@@ -326,8 +326,7 @@ def main_default():
             if SETTINGS.START == 0:
                 if CFG.CAMERA_FEEDBACK:
                     sim.simulate_return_image(0,0,0.01)
-                    grabbed, frame = capture.read()
-                    cv.waitKey(5)
+                    grabbed, frame = capture.read()                 
                 else:
                     frame = sim.simulate_return_image(0,0,0.01)
                 
@@ -342,8 +341,10 @@ def main_default():
             grabbed, frame = capture.read()
             if not grabbed:
                 log_warn('Frame not grabbed. Continue...')
-                capture = cv.VideoCapture(CFG.VIDEO_PATH)
+                #capture = cv.VideoCapture(CFG.VIDEO_PATH)
                 continue
+
+        cv.waitKey(100)
 
         h, w = DATA.base_image.shape[:2]
         p = math.sqrt(h**2 + w**2)
@@ -444,7 +445,8 @@ def main_default():
         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
         #ROBOT.print()
-        DATA.robot_data.append(ROBOT.unpack())   
+        hI, wI, _ = DATA.base_image.shape
+        DATA.robot_data.append(ROBOT.unpackImg(hI, CFG.AREA_HEIGHT_REAL, wI, CFG.AREA_WIDTH_REAL))   
 
         if cv.waitKey(1) & 0xFF == ord('q'):
             break

@@ -247,7 +247,7 @@ class Track2Led:
 
             center_y = moment0['m01']/moment0['m00']
             center_y = map_img_to_real(center_y, DATA.area_height_captured, CFG.AREA_HEIGHT_REAL)
-            DATA.led1_pos = (int(center_x), int(center_y))
+            DATA.led1_pos = (center_x, center_y)
         else:
             DATA.led1_pos = None
 
@@ -257,7 +257,7 @@ class Track2Led:
 
             second_center_y = moment1['m01']/moment1['m00']
             second_center_y = map_img_to_real(second_center_y, DATA.area_height_captured, CFG.AREA_HEIGHT_REAL)
-            DATA.led2_pos = (int(second_center_x), int(second_center_y))
+            DATA.led2_pos = (second_center_x, second_center_y)
         else:
             DATA.led2_pos = None
 
@@ -265,13 +265,17 @@ class Track2Led:
         #if these blobs have areas > 0, then calculate the average of their centroids
         if (moment0['m00'] > 0 and moment1['m00'] > 0):
 
-            led_check = self.check_LED(center_x, center_y, second_center_x, second_center_y)
-
-            if (led_check):
-                DATA.robot_center = (int((center_x + second_center_x)/2), int((center_y + second_center_y)/2))
-                cv.circle(DATA.base_image, DATA.robot_center, 10, (255, 255, 0))
-                cv.circle(DATA.threshed_images[0], DATA.robot_center, 10, (255, 255, 0))
-                DATA.heading =  math.atan2(DATA.led1_pos[0]-DATA.led2_pos[0], DATA.led1_pos[1]-DATA.led2_pos[1]) + -np.pi
+            #led_check = self.check_LED(center_x, center_y, second_center_x, second_center_y)
+            #led_check was inside
+            if (True):
+                DATA.robot_center = ((center_x + second_center_x)/2.0, (center_y + second_center_y)/2.0)
+                h, w, c = DATA.base_image.shape
+                robot_centre_img = map_point_to_img(DATA.robot_center, (h, w), (CFG.AREA_HEIGHT_REAL, CFG.AREA_WIDTH_REAL))
+                led1_pos_img = map_point_to_img(DATA.led1_pos, (h, w), (CFG.AREA_HEIGHT_REAL, CFG.AREA_WIDTH_REAL))
+                led2_pos_img = map_point_to_img(DATA.led2_pos, (h, w), (CFG.AREA_HEIGHT_REAL, CFG.AREA_WIDTH_REAL))
+                cv.circle(DATA.base_image, robot_centre_img, 10, (255, 255, 0))
+                cv.circle(DATA.threshed_images[0], robot_centre_img, 10, (255, 255, 0))
+                DATA.heading =  math.atan2(led1_pos_img[0]-led2_pos_img[0], led1_pos_img[1]-led2_pos_img[1]) + -np.pi
                 DATA.heading = -1 * math.atan2(math.sin(DATA.heading), math.cos(DATA.heading))
             else:
                 DATA.robot_center = None
@@ -299,7 +303,7 @@ class Track2Led:
         key_press_raw = cv.waitKey(5) # gets a raw key press
         key_press = key_press_raw & 0xFF # same as 255# sets all but the low 8 bits to 0
         
-        # Handle key presses only if it's a real key (255 = "no key pressed")
+        # Handle key presses only (255 = "no key pressed")
         if key_press != 255:
             self.check_key_press(key_press, DATA, SETTINGS)
 
