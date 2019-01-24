@@ -2,6 +2,9 @@ import numpy as np
 from math import sin, cos
 import operator
 import math
+import sys
+sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/trackers')
+from utils import *
 
 def round_tuple(a):
     #return tuple(map(math.ceil, a))
@@ -50,7 +53,18 @@ class Robot2Led(Robot):
     
     def unpack(self):
         return (self.led1_pos, self.led2_pos, self.time, self.robot_center, self.heading, self.diamater, self.axle_len)
+    
+    def unpackImg(self, hI, hR, wI, wR):
+        imgMax = (hI, wI)
+        realMax = (hR, wR)
 
+        led1_pos = map_point_to_img(self.led1_pos, imgMax, realMax)
+        led2_pos = map_point_to_img(self.led2_pos, imgMax, realMax)
+        robot_center = map_point_to_img(self.robot_center, imgMax, realMax)
+        diamater = map_real_to_img(self.diamater, imgMax[0], realMax[0])
+        axle_len = map_real_to_img(self.axle_len, imgMax[0], realMax[0])
+
+        return (led1_pos, led2_pos, self.time, robot_center, self.heading, diamater, axle_len)
     def calculate_led_pos(self):
         led_1_diff = (sin(-self.heading) * -self.axle_len/2.0, cos(-self.heading) * -self.axle_len/2.0)
         led_2_diff = (sin(-self.heading) * self.axle_len/2.0, cos(-self.heading) * self.axle_len/2.0)

@@ -101,7 +101,7 @@ class TrackerBootstrap:
             #domknciecie, zachowuje context dla i
         """
         # Set the method to handle mouse button presses
-        cv.setMouseCallback('Tracing and Recognition.', self.onMouse, None)
+        cv.setMouseCallback('Tracing and Recognition.', self.onMouse, DATA)
         SETTINGS.last_key_pressed = 255
         #SETTINGS.last_posn = (0,0)
         #SETTINGS.velocity = 40
@@ -111,9 +111,12 @@ class TrackerBootstrap:
     def onMouse(self, event, x, y, flags, param):
         """ Callback dla kliknięcia myszy na okno Previw"""
         # clicked the left button
-        if event==cv.EVENT_LBUTTONDOWN: 
-            self.DATA.target = (x,y)
-            print('X, Y:', x, y, "    ", end=' ')
+        if event==cv.EVENT_LBUTTONDOWN:
+            h,w,c = param.base_image.shape 
+            xR = map_img_to_real(x, w, CFG.AREA_WIDTH_REAL)
+            yR = map_img_to_real(y, h, CFG.AREA_HEIGHT_REAL)
+            self.DATA.target = (xR,yR)
+            print('X, Y:', xR, yR, "    ", end=' ')
             (b,g,r) = self.DATA.processed_image[y,x]
             print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
             (h,s,v) = self.DATA.hsv[y,x]
@@ -190,7 +193,8 @@ def warp_iamge_aruco(image, prevCorners):
 
     if len(corners) < 4: 
        if len(prevCorners) < 4:
-           return orig
+           h,w,c = orig.shape
+           return orig, h, w
        corners = prevCorners
        
 
@@ -327,7 +331,7 @@ def main_default():
                 else:
                     frame = sim.simulate_return_image(0,0,0.01)
                 
-                DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA)
+                DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA.prevCorners)
                 #DATA.base_image = frame
 
                 tracker.detectAndTrack(SETTINGS, DATA, ROBOT)

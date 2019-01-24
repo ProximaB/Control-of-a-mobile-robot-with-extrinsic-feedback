@@ -38,7 +38,7 @@ class robotSimulationEnv:
         m = CFG.MARGIN_ARUCO
         frame[m:h+m, m:w+m] = ar_arr[0]   # UL
         frame[m:h+m, -w-m:-m] = ar_arr[1] # UR
-        frame[-h-m:-m, -w-m:-m] = ar_arr[2]   # BR
+        frame[-h-m:-m, -w-m:-m] = ar_arr[2]  # BR
         frame[-h-m:-m, m:w+m] = ar_arr[3]   # BL
         #frame[10:h:,-w-10:-10] = ar_arr[1]
         #frame[10:h,10:w] = ar_arr[2]
@@ -47,21 +47,30 @@ class robotSimulationEnv:
         #sw = statusWindowText(frame)
         #sw.drawData((50,50), 1.23, 10, 1.42, (255,0,0))
         robot =  self.model.robot
-        led1_pos, led2_pos, time, robot_center, heading, diamater, axle_len = robot.unpack()
+        height, width, cnl = frame.shape
+
+        true_height = height - 2*(m+h)
+        true_width = width - 2*(m+w)
+        area_frame = np.ones((true_height, true_width, 3), dtype='uint8') *255
+
+        led1_pos, led2_pos, time, robot_center, heading, diamater, axle_len = robot.unpackImg(true_height, CFG.AREA_HEIGHT_REAL, true_width, CFG.AREA_WIDTH_REAL)
         #leds
-        cv.circle(frame, led1_pos, CFG.LED_RADIUS, (0, 255, 0), CFG.LED_THICKNES)
-        cv.circle(frame, led2_pos, CFG.LED_RADIUS, (0, 0, 255), CFG.LED_THICKNES)
+        cv.circle(area_frame, led1_pos, CFG.LED_RADIUS, (0, 255, 0), CFG.LED_THICKNES)
+        cv.circle(area_frame, led2_pos, CFG.LED_RADIUS, (0, 0, 255), CFG.LED_THICKNES)
         #robot circle
         rnd = tuple(map(round, robot_center))
-        cv.circle(frame, rnd, round(diamater/2), (0, 0, 0), CFG.ROBOT_THICKNESS)
+        cv.circle(area_frame, rnd, round(diamater/2), (0, 0, 0), CFG.ROBOT_THICKNESS)
         #robot front half circle
         #radiu jest loiczny od roztawu kół nie od szerokosci robota.. któa jest wykorzystywana do rysowania
         radius=round(axle_len/2 - axle_len/2 * 0.2); axes = (radius,radius)
         angle=heading*180/np.pi
         startAngle=-30; endAngle=30#0-180def
         color=(255, 0, 0)
-        cv.ellipse(frame, rnd, axes, angle, startAngle, endAngle, color, CFG.ROBOT_THICKNESS)
+        cv.ellipse(area_frame, rnd, axes, angle, startAngle, endAngle, color, CFG.ROBOT_THICKNESS)
         #pole robocze robota
+        mh = m+h
+        mw = m+w
+        frame[mw: -mw, mh: -mh] = area_frame
         shape_hw = frame.shape[1::-1]
         #cv.rectangle(frame, CFG.AREA_POINTS[0], add(shape_hw, CFG.AREA_POINTS[1]), 0, CFG.AREA_THICKNESS)
 
@@ -147,7 +156,8 @@ if __name__ == "__main__":
     aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
     arruco_img = aruco.drawMarker(aruco_dict, id = 1, sidePixels = 30)
 
-    robot = Robot2Led(20, (500, 500), (500, 480), (500, 520), 0, 75, 50, 5)
+    robot = Robot2Led(0, (50, 25), None, None, 0, 20, 15, 5)
+    robot.calculate_led_pos()
     model = RobotModel2Led(robot, 5)
     sim = robotSimulationEnv(model)
     class cap:

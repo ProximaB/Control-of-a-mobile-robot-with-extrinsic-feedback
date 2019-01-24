@@ -165,12 +165,22 @@ def draw_path_image(image, data):
     #cv.imshow('Path_Image', image)
     return path_image
 
-def map_real_to_img(valueReal, virtalMax, realMax):
+def map_real_to_img(valueReal, imgMax, realMax):
     # x = xR * k
     # k = xw / xRw
-    return valueReal * virtalMax/float(realMax)
+    return round(valueReal * imgMax/float(realMax))
 
-def map_img_to_real(valueImg, virtalMax, realMax):
+def map_point_to_img(pointReal, imgMaxTuple, realMaxTuple):
+    x = round(pointReal[0] * imgMaxTuple[0]/float(realMaxTuple[0]))
+    y = round(pointReal[1] * imgMaxTuple[1]/float(realMaxTuple[1]))
+    return (x, y)
+
+def map_img_to_real(valueImg, imgMax, realMax):
     # x = xR * k
     # k = xw / xRw
-    return valueImg * realMax/float(virtalMax)
+    return valueImg * realMax/float(imgMax)
+
+def map_point_to_real(pointImg, imgMaxTuple, realMaxTuple):
+    x = round(pointImg[0] * realMaxTuple[0]/float(imgMaxTuple[0]))
+    y = round(pointImg[1] * realMaxTuple[1]/float(imgMaxTuple[1]))
+    return (x, y)

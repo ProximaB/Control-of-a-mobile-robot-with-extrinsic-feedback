@@ -240,20 +240,23 @@ class Track2Led:
         # liczenie momentu dla każdego z konturów
         moment0 = cv.moments(LED[0])
         moment1 = cv.moments(LED[1])
-        h, w, c = DATA.base_image.shape
+        #h, w, c = DATA.base_image.shape
         if (moment0['m00'] > 0):
             center_x = moment0['m10']/moment0['m00']
-            center_x = map_img_to_real(center_x, h, DATA.area_width_captured)
+            center_x = map_img_to_real(center_x, DATA.area_width_captured, CFG.AREA_WIDTH_REAL)
 
             center_y = moment0['m01']/moment0['m00']
-            center_x = map_img_to_real(center_x, h, DATA.area_width_captured)
+            center_y = map_img_to_real(center_y, DATA.area_height_captured, CFG.AREA_HEIGHT_REAL)
             DATA.led1_pos = (int(center_x), int(center_y))
         else:
             DATA.led1_pos = None
 
         if (moment1['m00'] > 0):
             second_center_x = moment1['m10']/moment1['m00']
+            second_center_x = map_img_to_real(second_center_x, DATA.area_width_captured, CFG.AREA_WIDTH_REAL)
+
             second_center_y = moment1['m01']/moment1['m00']
+            second_center_y = map_img_to_real(second_center_y, DATA.area_height_captured, CFG.AREA_HEIGHT_REAL)
             DATA.led2_pos = (int(second_center_x), int(second_center_y))
         else:
             DATA.led2_pos = None
@@ -300,8 +303,14 @@ class Track2Led:
         if key_press != 255:
             self.check_key_press(key_press, DATA, SETTINGS)
 
+        h, w, c = DATA.base_image.shape
+        x, y = DATA.target
         # updatee the displays:
-        cv.circle(DATA.base_image, DATA.target, 3, (255,0,0), 2, -1)
+        xI = map_real_to_img(x, w, CFG.AREA_WIDTH_REAL)
+        yI = map_real_to_img(y, h, CFG.AREA_HEIGHT_REAL)
+        target = (xI, yI)
+
+        cv.circle(DATA.base_image, target, 3, (255,0,0), 2, -1)
         cv.imshow('Tracing and Recognition.', DATA.base_image)
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):

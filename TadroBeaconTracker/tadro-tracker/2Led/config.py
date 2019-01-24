@@ -9,13 +9,14 @@ D = Data()
 
 ######################## SET D CONSTANTS CONFIG OBJECT ######################## 
 # Real Robot area settings
-D.AREA_HEIGHT_REAL = 100 #[mm]
-D.AREA_WIDTH_REAL = 200 #[mm]
+D.AREA_HEIGHT_REAL = 50 #[mm] 12.8 razy mniejsze niz pix 12.8mm/px
+D.AREA_WIDTH_REAL = 100 #[mm]
+
 # Robot settings
-D.ROB_CNTR = (500, 300)
+D.ROB_CNTR = (25, 50)
 D.HEADING = 0
-D.DIAMETER = 75
-D.AXLE_LEN = 50
+D.DIAMETER = 25
+D.AXLE_LEN = 10
 D.WHEEL_RADIUS = 5
 # Simulator settings
 D.W_HEIGHT = 640
