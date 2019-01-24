@@ -153,6 +153,79 @@ class TrackerBootstrap:
         capture.set(CV_CAP_PROP_POS_FRAMES, frame_counter)
         return True
 
+def draw_plot(feedback_list, setpoint_list, time_list, title, id):
+    time_sm = np.array(time_list)
+    time_smooth = np.linspace(time_sm.min(), time_sm.max(), 300)
+
+    # feedback_smooth = spline(time_list, feedback_list, time_smooth)
+    # Using make_interp_spline to create BSpline
+    helper_x3 = make_interp_spline(time_list, feedback_list)
+    feedback_smooth = helper_x3(time_smooth)
+
+    L = len(time_list)
+    f = plt.figure(id)
+    plt.plot(time_smooth, feedback_smooth)
+    plt.plot(time_list, setpoint_list)
+    #plt.xlim((0, L))
+    #plt.ylim((min(feedback_list)-0.5, max(feedback_list)+0.5))
+    plt.xlabel('time (s)')
+    plt.ylabel('PID (PV)')
+    plt.title(title)
+
+    #plt.ylim((1-0.5, 1+0.5))
+
+    plt.grid(True)
+    return f
+
+def warp_iamge_aruco(image):
+    orig = image.copy()
+    gray = cv.cvtColor(image, cv.COLOR_RGB2GRAY)
+    gray = cv.bilateralFilter(gray, 15, 15, 15)
+    
+    aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
+    parameters = aruco.DetectorParameters_create()
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    preview = aruco.drawDetectedMarkers(image, corners)
+
+    cv.imshow('Preview markers detect', preview)
+
+    #genPts = (v[0][0] for v in corners)
+    genPts = []
+    for i in range(len(corners)):
+        genPts.append(corners[i][0][i])
+    pts = np.stack(genPts)
+    rect = np.zeros((4, 2), dtype="float32")
+
+    s = pts.sum(axis=1)
+    rect[0] = pts[np.argmin(s)]
+    rect[2] = pts[np.argmax(s)]
+
+    diff = np.diff(pts, axis=1)
+    rect[1] = pts[np.argmin(diff)]
+    rect[3] = pts[np.argmax(diff)]
+
+    (tl, tr, br, bl) = rect
+
+    widthA = np.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+    widthB = np.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+
+    heightA = np.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+    heightB = np.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+
+    maxWidth = max(int(widthA), int(widthB))
+    maxHeight = max(int(heightA), int(heightB))
+
+    dst = np.array([
+        [0, 0],
+        [maxWidth - 1, 0],
+        [maxWidth - 1, maxHeight - 1],
+        [0, maxHeight - 1]], dtype="float32")
+
+    M = cv.getPerspectiveTransform(rect, dst)
+    warp = cv.warpPerspective(orig, M, (maxWidth, maxHeight))
+    cv.imshow('wrap image', warp)
+    return warp
+
 def main_default():
     # create settings object to store necessary data for further processing, 
     # we'll pass it to fcns later
@@ -237,7 +310,9 @@ def main_default():
                     grabbed, frame = capture.read()
                 else:
                     frame = sim.simulate_return_image(0,0,0.01)
-                DATA.base_image = frame
+                
+                DATA.base_image = warp_iamge_aruco(frame)
+                #DATA.base_image = frame
 
                 tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
                 if cv.waitKey(1) & 0xFF == ord('q'):
@@ -267,7 +342,8 @@ def main_default():
             else:
                 frame = sim.simulate_return_image(vel_1, vel_2, 0.01)
 
-        DATA.base_image = frame
+        DATA.base_image = warp_iamge_aruco(frame)
+        #DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
 
@@ -360,29 +436,9 @@ def main_default():
     capture.release()
     cv.destroyAllWindows()
 
-def draw_plot(feedback_list, setpoint_list, time_list, title, id):
-    time_sm = np.array(time_list)
-    time_smooth = np.linspace(time_sm.min(), time_sm.max(), 300)
 
-    # feedback_smooth = spline(time_list, feedback_list, time_smooth)
-    # Using make_interp_spline to create BSpline
-    helper_x3 = make_interp_spline(time_list, feedback_list)
-    feedback_smooth = helper_x3(time_smooth)
 
-    L = len(time_list)
-    f = plt.figure(id)
-    plt.plot(time_smooth, feedback_smooth)
-    plt.plot(time_list, setpoint_list)
-    #plt.xlim((0, L))
-    #plt.ylim((min(feedback_list)-0.5, max(feedback_list)+0.5))
-    plt.xlabel('time (s)')
-    plt.ylabel('PID (PV)')
-    plt.title(title)
 
-    #plt.ylim((1-0.5, 1+0.5))
-
-    plt.grid(True)
-    return f
 
 def main_simulation():
     # create settings object to store necessary data for further processing, 
@@ -460,7 +516,8 @@ def main_simulation():
         
         DATA.base_image = frame
         """ Transformacja affiniczna dla prostokąta, określającego pole roboczese """
-        # w przypadku symulacji niepotrzebna 
+        # w przypadku symulacji niepotrzebna, teraz zalkezy id CAMERA_FEEDBACk w konfuguracji 
+
 
         """ ################## ROBOT DETECTION AND TRACKING ###################### """
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))

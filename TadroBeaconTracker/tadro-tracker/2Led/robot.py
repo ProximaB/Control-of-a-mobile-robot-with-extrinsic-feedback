@@ -57,7 +57,7 @@ class Robot2Led(Robot):
         self.led1_pos = round_tuple(add_t(self.robot_center, led_1_diff))
         self.led2_pos = round_tuple(add_t(self.robot_center, led_2_diff))
 
-class RobotArruco(Robot):
+class RobotAruco(Robot):
     def __init__(self, time, robot_center, heading, diamater=10, axle_len=10, wheel_radius=5):
         self.axle_len = axle_len
         self.wheel_radius = wheel_radius

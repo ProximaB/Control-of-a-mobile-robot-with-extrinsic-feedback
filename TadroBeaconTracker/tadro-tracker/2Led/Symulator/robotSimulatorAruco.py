@@ -40,6 +40,12 @@ class robotSimulationEnvAruco:
         self.model = model
         self.aruco_img = cv.cvtColor(aruco_img, cv.COLOR_GRAY2BGR)
 
+        self.aruco_corners_img = []
+        aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
+        for _id in CFG.CORNER_IDS:
+            aruco_img = aruco.drawMarker(aruco_dict, id = _id, sidePixels = CFG.SIDEPIXEL_ARUCO)
+            self.aruco_corners_img.append(cv.cvtColor(aruco_img, cv.COLOR_GRAY2BGR))
+
     def rotate_bound(self, image, angle):
 
         (h, w) = image.shape[:2]
@@ -58,6 +64,16 @@ class robotSimulationEnvAruco:
         return cv.warpAffine(image, M, (nW, nH))
 
     def draw_robot_position(self, frame):
+        # draw arruco corner markers
+        ar_arr = self.aruco_corners_img
+        h, w, c = ar_arr[0].shape
+        
+        m = CFG.MARGIN_ARUCO
+        frame[m:h+m, m:w+m] = ar_arr[0]   # UL
+        frame[m:h+m, -w-m:-m] = ar_arr[1] # UR
+        frame[-h-m:-m, -w-m:-m] = ar_arr[2]   # BR
+        frame[-h-m:-m, m:w+m] = ar_arr[3]   # BL
+
         #sw = statusWindowText(frame)
         #sw.drawData((50,50), 1.23, 10, 1.42, (255,0,0))
         robot =  self.model.robot
@@ -162,11 +178,11 @@ class robotSimulationEnvAruco:
         return display_frame
 
 if __name__ == "__main__":
-    aruco_dict = aruco.Dictionary_get(CFG.aruco_DICT)
+    aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
     aruco_img = aruco.drawMarker(aruco_dict, id = 1, sidePixels = 30)
-    robot = Robotaruco(20, (500, 500), 0, 75, 50, 5)
+    robot = RobotAruco(20, (500, 500), 0, 75, 50, 5)
     model = RobotModel2Led(robot, 5)
-    sim = robotSimulationEnvaruco(model, aruco_img)
+    sim = robotSimulationEnvAruco(model, aruco_img)
     class cap:
         def read(self, x,y,z): return sim.simulate_return_image(x,y,z)
     
