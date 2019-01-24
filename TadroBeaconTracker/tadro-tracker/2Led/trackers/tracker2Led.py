@@ -240,10 +240,13 @@ class Track2Led:
         # liczenie momentu dla każdego z konturów
         moment0 = cv.moments(LED[0])
         moment1 = cv.moments(LED[1])
-
+        h, w, c = DATA.base_image.shape
         if (moment0['m00'] > 0):
             center_x = moment0['m10']/moment0['m00']
+            center_x = map_img_to_real(center_x, h, DATA.area_width_captured)
+
             center_y = moment0['m01']/moment0['m00']
+            center_x = map_img_to_real(center_x, h, DATA.area_width_captured)
             DATA.led1_pos = (int(center_x), int(center_y))
         else:
             DATA.led1_pos = None

@@ -164,3 +164,13 @@ def draw_path_image(image, data):
         #cv.circle(path_image, x[1], 1, copy.copy(col))
     #cv.imshow('Path_Image', image)
     return path_image
+
+def map_real_to_img(valueReal, virtalMax, realMax):
+    # x = xR * k
+    # k = xw / xRw
+    return valueReal * virtalMax/float(realMax)
+
+def map_img_to_real(valueImg, virtalMax, realMax):
+    # x = xR * k
+    # k = xw / xRw
+    return valueImg * realMax/float(virtalMax)

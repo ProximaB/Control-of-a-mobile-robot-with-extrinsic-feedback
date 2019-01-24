@@ -15,21 +15,6 @@ from RobotModel2Led import RobotModel2Led
 # class robotSimulator:
 #Przekształcić do klasy, która będzie przechowywała stan i na wywołanie nextframe(input values for model)
 # zwróci kolejną klatkę,
-W_HEIGHT = 640
-W_WIDTH = 1280
-D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
-D_MARGIN_VERTICAL = (10, 10)
-FONT = cv.FONT_HERSHEY_SIMPLEX
-    
-D_WIDTH = W_WIDTH - D_MARGIN_HORIZONTAL[0] - D_MARGIN_HORIZONTAL[1]
-D_HEIGHT = W_HEIGHT - D_MARGIN_VERTICAL[0] - D_MARGIN_VERTICAL[1]
-
-LED_RADIUS = 8
-LED_THICKNES = -1#8
-ROBOT_THICKNESS = 3
-
-AREA_POINTS = [(10,10), (-10,-10)] #punkty pola dodawane marginesy wys szer
-AREA_THICKNESS = 4
 
 def add(a, b):
     '''dodanie dwoch punktow, tuple '''
@@ -39,7 +24,7 @@ class robotSimulationEnv:
     def __init__(self, model : RobotModel2Led):
         self.model = model
 
-        self.aruco_corners_img = []
+        self.aruco_corners_img = [] 
         aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
         for _id in CFG.CORNER_IDS:
             aruco_img = aruco.drawMarker(aruco_dict, id = _id, sidePixels = CFG.SIDEPIXEL_ARUCO)
@@ -64,31 +49,31 @@ class robotSimulationEnv:
         robot =  self.model.robot
         led1_pos, led2_pos, time, robot_center, heading, diamater, axle_len = robot.unpack()
         #leds
-        cv.circle(frame, led1_pos, LED_RADIUS, (0, 255, 0), LED_THICKNES)
-        cv.circle(frame, led2_pos, LED_RADIUS, (0, 0, 255), LED_THICKNES)
+        cv.circle(frame, led1_pos, CFG.LED_RADIUS, (0, 255, 0), CFG.LED_THICKNES)
+        cv.circle(frame, led2_pos, CFG.LED_RADIUS, (0, 0, 255), CFG.LED_THICKNES)
         #robot circle
         rnd = tuple(map(round, robot_center))
-        cv.circle(frame, rnd, round(diamater/2), (0, 0, 0), ROBOT_THICKNESS)
+        cv.circle(frame, rnd, round(diamater/2), (0, 0, 0), CFG.ROBOT_THICKNESS)
         #robot front half circle
         #radiu jest loiczny od roztawu kół nie od szerokosci robota.. któa jest wykorzystywana do rysowania
         radius=round(axle_len/2 - axle_len/2 * 0.2); axes = (radius,radius)
         angle=heading*180/np.pi
         startAngle=-30; endAngle=30#0-180def
         color=(255, 0, 0)
-        cv.ellipse(frame, rnd, axes, angle, startAngle, endAngle, color, ROBOT_THICKNESS)
+        cv.ellipse(frame, rnd, axes, angle, startAngle, endAngle, color, CFG.ROBOT_THICKNESS)
         #pole robocze robota
         shape_hw = frame.shape[1::-1]
-        cv.rectangle(frame, AREA_POINTS[0], add(shape_hw, AREA_POINTS[1]), 0, AREA_THICKNESS)
+        #cv.rectangle(frame, CFG.AREA_POINTS[0], add(shape_hw, CFG.AREA_POINTS[1]), 0, CFG.AREA_THICKNESS)
 
     def simulation_keys_KLIO(self):
-        win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
-        display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
+        win_frame = np.ones((CFG.W_HEIGHT, CFG.W_WIDTH, 3), dtype='uint8')
+        display_frame = np.ones((CFG.D_HEIGHT, CFG.D_WIDTH, 3), dtype='uint8') *255 # white plane
 
         #Symulacja Robota
         #rysowanie_pozycji robota
         L = 0; R = 0
         while True:
-            display_frame = np.ones((D_HEIGHT, D_WIDTH, 3),
+            display_frame = np.ones((CFG.D_HEIGHT, CFG.D_WIDTH, 3),
                                     dtype='uint8') * 255  # white plane
             key = cv.waitKey(5)
 
@@ -109,15 +94,15 @@ class robotSimulationEnv:
 
             self.draw_robot_position(display_frame)
             #wyświetlanie okna prezentującego symulacje i ważne parametry robota
-            win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8') #czyszczenie win_frame
-            win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+            win_frame = np.ones((CFG.W_HEIGHT, CFG.W_WIDTH, 3), dtype='uint8') #czyszczenie win_frame
+            win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
             # wypisywanie statusu
             sw = statusWindowText(win_frame)
             sw.drawData(robot.robot_center, robot.heading, 0, 0)
             #wyswietlenie na oknie
             cv.imshow('result', win_frame)
         # nakładanie display_frame na win_frame
-        win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+        win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
 
         # wypisywanie statusu
         sw = statusWindowText(win_frame)    
@@ -131,8 +116,8 @@ class robotSimulationEnv:
         model = self.model
         robot = model.robot
         
-        win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
-        display_frame = np.ones((D_HEIGHT, D_WIDTH, 3), dtype='uint8') *255 # white plane
+        win_frame = np.ones((CFG.W_HEIGHT, CFG.W_WIDTH, 3), dtype='uint8')
+        display_frame = np.ones((CFG.D_HEIGHT, CFG.D_WIDTH, 3), dtype='uint8') *255 # white plane
 
         #Symulacja Robota
         #rysowanie_pozycji robota
@@ -143,8 +128,8 @@ class robotSimulationEnv:
         self.draw_robot_position(display_frame)
         
         #wyświetlanie okna prezentującego symulacje i ważne parametry robota
-        win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8') #czyszczenie win_frame
-        win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+        win_frame = np.ones((CFG.W_HEIGHT, CFG.W_WIDTH, 3), dtype='uint8') #czyszczenie win_frame
+        win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
         
         # wypisywanie statusu
         sw = statusWindowText(win_frame)
@@ -152,7 +137,7 @@ class robotSimulationEnv:
         #wyswietlenie na oknie
         cv.imshow('Simulator Window', win_frame)
         # nakładanie display_frame na win_frame
-        win_frame[D_MARGIN_VERTICAL[0] : - D_MARGIN_VERTICAL[1], D_MARGIN_HORIZONTAL[0] : - D_MARGIN_HORIZONTAL[1], ] = display_frame
+        win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
         #wyswitlanie podglądu symulacji w osobnym oknie
         cv.imshow('Simulator Window', win_frame)
 

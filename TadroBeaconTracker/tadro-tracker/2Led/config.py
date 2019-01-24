@@ -1,6 +1,6 @@
 from os.path import normpath
 import cv2.aruco as aruco
-
+import cv2 as cv
 class Data:
     def __init__(self):
         pass
@@ -8,6 +8,32 @@ class Data:
 D = Data()
 
 ######################## SET D CONSTANTS CONFIG OBJECT ######################## 
+# Real Robot area settings
+D.AREA_HEIGHT_REAL = 100 #[mm]
+D.AREA_WIDTH_REAL = 200 #[mm]
+# Robot settings
+D.ROB_CNTR = (500, 300)
+D.HEADING = 0
+D.DIAMETER = 75
+D.AXLE_LEN = 50
+D.WHEEL_RADIUS = 5
+# Simulator settings
+D.W_HEIGHT = 640
+D.W_WIDTH = 1280
+D.D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
+D.D_MARGIN_VERTICAL = (10, 10)
+D.FONT = cv.FONT_HERSHEY_SIMPLEX
+  
+D.D_WIDTH = D.W_WIDTH - D.D_MARGIN_HORIZONTAL[0] - D.D_MARGIN_HORIZONTAL[1] #Wielkosc symulacji, potrzebne do policzenia skali 
+D.D_HEIGHT = D.W_HEIGHT - D.D_MARGIN_VERTICAL[0] - D.D_MARGIN_VERTICAL[1]   # w odniesieniu do wielkosci wykrytego oknaprzez kamere
+
+D.LED_RADIUS = 8
+D.LED_THICKNES = -1#8
+D.ROBOT_THICKNESS = 3
+
+D.AREA_POINTS = [(10,10), (-10,-10)] #punkty pola dodawane marginesy wys szer
+D.AREA_THICKNESS = 4
+
 #Settings for arruco markers and enums
 D.ARUCO_DICT = aruco.DICT_4X4_50
 D.ROBOT_ID = 0
@@ -16,9 +42,9 @@ D.UPPER_RIGHT_ID = 2
 D.BOTTOM_RIGHT = 3
 D.BOTTOM_LEFT = 4
 D.CORNER_IDS = [D.UPPER_LEFT_ID, D.UPPER_RIGHT_ID, D.BOTTOM_RIGHT, D.BOTTOM_LEFT]
-D.SIDEPIXEL_ARUCO = 50
+D.SIDEPIXEL_ARUCO = 100
 D.SIDEPIXEL_ARUCO_ROBOT = 30
-D.MARGIN_ARUCO = 20
+D.MARGIN_ARUCO = 30
 
 #Settings for PID controller
 #angular controll
@@ -27,7 +53,7 @@ D.LED_ENUM = 1
 D.ARUCCO_ENUM = 2
 
 D.SIMULATION = True
-D.CAMERA_FEEDBACK = False # czy obraz przechwycic z kamery czy wprost z symulatora
+D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
 # Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
 D.TRACKER_TYPE = D.LED_ENUM
 
