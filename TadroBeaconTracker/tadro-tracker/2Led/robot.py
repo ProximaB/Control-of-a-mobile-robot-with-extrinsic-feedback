@@ -68,8 +68,8 @@ class Robot2Led(Robot):
     def calculate_led_pos(self):
         led_1_diff = (sin(-self.heading) * -self.axle_len/2.0, cos(-self.heading) * -self.axle_len/2.0)
         led_2_diff = (sin(-self.heading) * self.axle_len/2.0, cos(-self.heading) * self.axle_len/2.0)
-        self.led1_pos = round_tuple(add_t(self.robot_center, led_1_diff))
-        self.led2_pos = round_tuple(add_t(self.robot_center, led_2_diff))
+        self.led1_pos = add_t(self.robot_center, led_1_diff)
+        self.led2_pos = add_t(self.robot_center, led_2_diff)
 
 class RobotAruco(Robot):
     def __init__(self, time, robot_center, heading, diamater=10, axle_len=10, wheel_radius=5):

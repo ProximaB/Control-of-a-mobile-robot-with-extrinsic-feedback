@@ -15,12 +15,12 @@ D.AREA_WIDTH_REAL = 100 #[mm]
 # Robot settings 
 D.ROB_CNTR = (50, 25) # x, y
 D.HEADING = 0
-D.DIAMETER = 15
+D.DIAMETER = 15 #15
 D.AXLE_LEN = 10
 D.WHEEL_RADIUS = 5
 # Simulator settings
-D.W_HEIGHT = 640
-D.W_WIDTH = 1280
+D.W_HEIGHT = 840#640
+D.W_WIDTH =  1480#1280
 D.D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
 D.D_MARGIN_VERTICAL = (10, 10)
 D.FONT = cv.FONT_HERSHEY_SIMPLEX
@@ -28,24 +28,24 @@ D.FONT = cv.FONT_HERSHEY_SIMPLEX
 D.D_WIDTH = D.W_WIDTH - D.D_MARGIN_HORIZONTAL[0] - D.D_MARGIN_HORIZONTAL[1] #Wielkosc symulacji, potrzebne do policzenia skali 
 D.D_HEIGHT = D.W_HEIGHT - D.D_MARGIN_VERTICAL[0] - D.D_MARGIN_VERTICAL[1]   # w odniesieniu do wielkosci wykrytego oknaprzez kamere
 
-D.LED_RADIUS = 8
-D.LED_THICKNES = -1#8
+D.LED_RADIUS = 21#8 #px
+D.LED_THICKNES = -1#8 
 D.ROBOT_THICKNESS = 3
 
 D.AREA_POINTS = [(10,10), (-10,-10)] #punkty pola dodawane marginesy wys szer
 D.AREA_THICKNESS = 4
 
 #Settings for arruco markers and enums
-D.ARUCO_DICT = aruco.DICT_4X4_50
+D.ARUCO_DICT = aruco.DICT_ARUCO_ORIGINAL #aruco.DICT_4X4_50
 D.ROBOT_ID = 0
 D.UPPER_LEFT_ID = 1
 D.UPPER_RIGHT_ID = 2
 D.BOTTOM_RIGHT = 3
 D.BOTTOM_LEFT = 4
 D.CORNER_IDS = [D.UPPER_LEFT_ID, D.UPPER_RIGHT_ID, D.BOTTOM_RIGHT, D.BOTTOM_LEFT]
-D.SIDEPIXEL_ARUCO = 100
+D.SIDEPIXEL_ARUCO = 100#100
 D.SIDEPIXEL_ARUCO_ROBOT = 30
-D.MARGIN_ARUCO = 30
+D.MARGIN_ARUCO = 40 #30
 
 #Settings for PID controller
 #angular controll
@@ -57,8 +57,6 @@ D.SIMULATION = True
 D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
 # Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
 D.TRACKER_TYPE = D.LED_ENUM
-
-
 
 D.PROPORTIONAL1 = 1.0 #proporcjonalny
 D.INTEGRAL1 = 1.0 #całka

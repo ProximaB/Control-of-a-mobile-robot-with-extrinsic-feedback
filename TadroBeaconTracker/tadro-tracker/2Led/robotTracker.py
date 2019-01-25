@@ -181,24 +181,33 @@ def draw_plot(feedback_list, setpoint_list, time_list, title, id):
     plt.grid(True)
     return f
 
-def warp_iamge_aruco(image, prevCorners):
+def warp_iamge_aruco(image, DATA):
     orig = image.copy()
     gray = cv.cvtColor(image, cv.COLOR_RGB2GRAY)
-    #gray = cv.bilateralFilter(gray, 5, 5, 5)
-    gray = exposure.rescale_intensity(gray, out_range=(0, 255))
+    gray = cv.bilateralFilter(gray, 15, 15, 15)
+    #gray = exposure.rescale_intensity(gray, out_range=(0, 255))
     
     aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
     parameters = aruco.DetectorParameters_create()
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
 
     if len(corners) < 4: 
-       if len(prevCorners) < 4:
+       if len(DATA.prevCorners) < 4:
            h,w,c = orig.shape
            return orig, h, w
-       corners = prevCorners
-       
+       corners = DATA.prevCorners
 
-    prevCorners = corners
+    subs = 0
+    if(len(DATA.prevCorners) != 0):
+        for i in range(4): 
+            x, y = sub_t(corners[i][0][0], DATA.prevCorners[i][0][0])
+            subs += math.sqrt(x**2 + y**2)
+        if subs < 30:
+           corners = DATA.prevCorners
+        else:
+            print("Movement affected affine trans.")
+
+    DATA.prevCorners = corners
     preview = aruco.drawDetectedMarkers(image, corners)
     cv.imshow('Preview markers detect', preview)
 
@@ -330,7 +339,7 @@ def main_default():
                 else:
                     frame = sim.simulate_return_image(0,0,0.01)
                 
-                DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA.prevCorners)
+                DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA)
                 #DATA.base_image = frame
 
                 tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
@@ -344,7 +353,7 @@ def main_default():
                 #capture = cv.VideoCapture(CFG.VIDEO_PATH)
                 continue
 
-        cv.waitKey(100)
+        #cv.waitKey(100)
 
         h, w = DATA.base_image.shape[:2]
         p = math.sqrt(h**2 + w**2)
@@ -363,7 +372,7 @@ def main_default():
             else:
                 frame = sim.simulate_return_image(vel_1, vel_2, 0.01)
 
-        DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA.prevCorners)
+        DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA)
         #DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
