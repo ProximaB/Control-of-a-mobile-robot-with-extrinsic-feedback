@@ -24,7 +24,7 @@ sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/trackers')
 from tracker2Led import Track2Led
 from trackerArruco import TrackArruco
 # import Robot class
-from robot import *
+from robot import Robot2Led, RobotAruco
 # custom simpl logger
 from logger import *
 # import utils
@@ -116,11 +116,11 @@ class TrackerBootstrap:
             xR = map_img_to_real(x, w, CFG.AREA_WIDTH_REAL)
             yR = map_img_to_real(y, h, CFG.AREA_HEIGHT_REAL)
             self.DATA.target = (xR,yR)
-            print('X, Y:', xR, yR, "    ", end=' ')
+            log_print('X, Y:', xR, yR, "    ", end=' ')
             (b,g,r) = self.DATA.processed_image[y,x]
-            print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
+            log_print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
             (h,s,v) = self.DATA.hsv[y,x]
-            print('H, S, V', int(h), int(s), int(v))
+            log_print('H, S, V', int(h), int(s), int(v))
             self.DATA.down_coord = (x,y)
 
 
@@ -128,16 +128,16 @@ class TrackerBootstrap:
     def change_slider(self, thresholds, i, name, new_threshold):
         """ Callback do zmiany wartośći sliderów i wyświetlenia ustawionej wartości w konsoli."""
         thresholds[i][name] = new_threshold
-        print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
+        log_print('{name}: {val}'.format(name=name, val = thresholds[i][name]))
 
     def change_heading(self, new_heading):
         targetHeading = new_heading * np.pi/180.0
         self.DATA.targetHeading = targetHeading
-        print(f'targetHeading: {new_heading}')
+        log_print(f'targetHeading: {new_heading}')
 
     def switch(self, onOff):
         self.SETTINGS.START = onOff
-        print(f'Settings.START: {onOff}')
+        log_print(f'Settings.START: {onOff}')
     ####################### UTILITY ClASS / FUNCTIONS ##########################
 
     def play_in_loop(self, capture, frame_counter):
@@ -194,7 +194,7 @@ def warp_iamge_aruco(image, DATA):
     if len(corners) < 4: 
        if len(DATA.prevCorners) < 4:
            h,w,c = orig.shape
-           return orig, h, w
+           return orig, h, w, None
        corners = DATA.prevCorners
 
     subs = 0
@@ -202,19 +202,21 @@ def warp_iamge_aruco(image, DATA):
         for i in range(4): 
             x, y = sub_t(corners[i][0][0], DATA.prevCorners[i][0][0])
             subs += math.sqrt(x**2 + y**2)
-        if subs < 30:
+        if subs < 50:
            corners = DATA.prevCorners
         else:
-            print("Movement affected affine trans.")
+            log_print("Movement affected affine trans.")
 
     DATA.prevCorners = corners
     preview = aruco.drawDetectedMarkers(image, corners)
-    cv.imshow('Preview markers detect', preview)
+    if CFG.MARKER_PREVIEW is True: cv.imshow(DATA.markerPreviewWinName, preview)
 
     #genPts = (v[0][0] for v in corners)
-    genPts = []
-    for i in range(4): # range(len(corners)):
-        genPts.append(corners[i][0][i])
+    #genPts = []
+    #for i in range(4): # range(len(corners)):
+    #    genPts.append(corners[i][0][i])
+    
+    genPts = (v[0][0] for v in corners)
     pts = np.stack(genPts)
     rect = np.zeros((4, 2), dtype="float32")
 
@@ -246,7 +248,7 @@ def warp_iamge_aruco(image, DATA):
     M = cv.getPerspectiveTransform(rect, dst)
     warp = cv.warpPerspective(orig, M, (maxWidth, maxHeight))
     #cv.imshow('wrap image', warp)
-    return warp, maxHeight, maxWidth
+    return (warp, maxHeight, maxWidth, M)
 
 def main_default():
     # create settings object to store necessary data for further processing, 
@@ -266,6 +268,16 @@ def main_default():
     DATA.area_height_captured = None
     DATA.area_width_captured = None
 
+    DATA.doWarpImage = True
+
+    pathWinName = 'Robot Path'
+    cv.namedWindow(pathWinName)
+    cv.moveWindow(pathWinName, 0, 100)
+
+    markerPreviewWinName = DATA.markerPreviewWinName = 'Preview markers detect'
+    cv.namedWindow(markerPreviewWinName)
+    cv.moveWindow(markerPreviewWinName, 0, 400)
+
     if CFG.TRACKER_TYPE is CFG.LED_ENUM:
         tracker = Track2Led(DATA)
         trackerBootstrap = TrackerBootstrap(SETTINGS, DATA)
@@ -276,11 +288,12 @@ def main_default():
     #Robot2Led(0, (0,0), 0, 0, 0) # w tym obiekcie będą przechowywane aktualne dane o robocie
 
     if CFG.SIMULATION:#diamater=10, axle_len=10, wheel_radius=5
+        
         simRobot = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
         simRobot.calculate_led_pos()
-
         model = RobotModel2Led(simRobot)
         sim = robotSimulationEnv(model)
+        
         if CFG.CAMERA_FEEDBACK:
             sim.simulate_return_image(0,0,0.01)
             capture = cv.VideoCapture(CFG.VIDEO_PATH)
@@ -314,12 +327,12 @@ def main_default():
     PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
     
     PID1.SetPoint = 0
-    PID1.setSampleTime(0.01)
+    PID1.setSampleTime(0.02)
     PID1.update(0)
     PID1.setWindup(5.0)
 
     PID2.SetPoint = 0
-    PID2.setSampleTime(0.01)
+    PID2.setSampleTime(0.02)
     PID2.update(0)
     PID2.setWindup(5.0)
 
@@ -339,7 +352,8 @@ def main_default():
                 else:
                     frame = sim.simulate_return_image(0,0,0.01)
                 
-                DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA)
+                if DATA.doWarpImage is True: DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, M = warp_iamge_aruco(frame, DATA)
+                else: DATA.base_image = cv.warpPerspective(frame, M, (DATA.area_width_captured, DATA.area_height_captured))
                 #DATA.base_image = frame
 
                 tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
@@ -364,15 +378,16 @@ def main_default():
         vel_1 = outVel * cos(-outTheta)
         vel_2 = outVel * sin(-outTheta)
         
-        # print(f'Vl: {vel_1}, Vr: {vel_2}')
+        # log_print(f'Vl: {vel_1}, Vr: {vel_2}')
         if CFG.SIMULATION:
             if CFG.CAMERA_FEEDBACK:
                     sim.simulate_return_image(vel_1, vel_2, 0.01)
                     grabbed, frame = capture.read()
             else:
                 frame = sim.simulate_return_image(vel_1, vel_2, 0.01)
-
-        DATA.base_image, DATA.area_height_captured, DATA.area_width_captured = warp_iamge_aruco(frame, DATA)
+       
+        if DATA.doWarpImage is True: DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, M = warp_iamge_aruco(frame, DATA)
+        else: DATA.base_image = cv.warpPerspective(frame, M, (DATA.area_width_captured, DATA.area_height_captured))
         #DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
@@ -390,8 +405,8 @@ def main_default():
         if (error < CFG.SIM_ERROR): Vel = 0.0
         #elif (heading_error > 0.2) : Vel = 2.0
         else: Vel = CFG.VEL
-        print(f'error:{error}')
-        print(f'heading_error:{heading_error}')
+        log_print(f'error:{error}')
+        log_print(f'heading_error:{heading_error}')
         #else: V = 5.1  
         PID1.update(heading_error)
         PID2.update(error)
@@ -412,7 +427,8 @@ def main_default():
             time_list[1].append(PID2.current_time)
 
             img = generate_path_image(DATA, step = 3)#(DATA.base_image, DATA.robot_data) #rysuj droge
-            cv.imshow('Robot Path', img)
+            
+            if CFG.SHOW_PATH is True: cv.imshow(pathWinName, img)
 
             wasDrawn = False
 
@@ -452,12 +468,16 @@ def main_default():
 
         time.sleep(0.02)
         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
-        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
-        #ROBOT.print()
+        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error, DATA.doWarpImage)
+        #ROBOT.log_print()
         hI, wI, _ = DATA.base_image.shape
         DATA.robot_data.append(ROBOT.unpackImg(hI, CFG.AREA_HEIGHT_REAL, wI, CFG.AREA_WIDTH_REAL))   
 
-        if cv.waitKey(1) & 0xFF == ord('q'):
+        k = cv.waitKey(2) & 0xFF
+        if k == ord('p'):
+            DATA.doWarpImage = not DATA.doWarpImage
+            log_info("doWarp-changed")
+        elif k == ord('q'):
             break
     
     path_img = generate_path_image(DATA)
@@ -559,8 +579,8 @@ def main_default():
 #         if (error < CFG.SIM_ERROR): Vel = 0.0
 #         #elif (heading_error > 0.2) : Vel = 2.0
 #         else: Vel = CFG.VEL
-#         print(f'error:{error}')
-#         print(f'heading_error:{heading_error}')
+#         log_print(f'error:{error}')
+#         log_print(f'heading_error:{heading_error}')
 #         #else: V = 5.1  
 #         PID1.update(heading_error)
 #         PID2.update(error)
@@ -604,7 +624,7 @@ def main_default():
 #         time.sleep(0.02)
 #         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
 #         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error)
-#         #ROBOT.print()
+#         #ROBOT.log_print()
 #         DATA.robot_data.append(ROBOT.unpack())   
 
 #         if cv.waitKey(1) & 0xFF == ord('q'):

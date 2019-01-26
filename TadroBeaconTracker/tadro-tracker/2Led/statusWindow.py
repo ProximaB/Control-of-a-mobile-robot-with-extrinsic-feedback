@@ -3,9 +3,11 @@ import numpy as np
 class statusWindow:
     def __init__(self, win_name):
         self.win_name = win_name
-        self.image = np.zeros((170,197), dtype='uint8')
+        self.image = np.zeros((227,227), dtype='uint8')
+        cv.namedWindow(self.win_name)
+        cv.moveWindow(self.win_name, 0, 0)
     
-    def drawData(self, position, heading, error, heading_error):
+    def drawData(self, position, heading, error, heading_error, doWarping):
         x, y = position
         font = cv.FONT_HERSHEY_SIMPLEX
         cv.putText(self.image, f'X:   {x}', (1, 33), font, 1, (255,255,255), 2, cv.LINE_AA)
@@ -13,8 +15,11 @@ class statusWindow:
         cv.putText(self.image, 'Th:  {0}'.format(heading*180.0/np.pi), (1,99), font, 1, (255,255,255), 2, cv.LINE_AA)
         cv.putText(self.image, f'E:   {error}', (1,132), font, 1, (255,255,255), 2, cv.LINE_AA)
         cv.putText(self.image, f'ThE: {heading_error*180.0/np.pi}', (1,165), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'Do warp: {doWarping}', (1,195), font, 1, (255,255,255), 2, cv.LINE_AA)
+
         #cv.namedWindow(self.win_name, cv.WINDOW_FREERATIO)
         cv.imshow(self.win_name, self.image)
+       
 
 class statusWindowText:
     def __init__(self, image):

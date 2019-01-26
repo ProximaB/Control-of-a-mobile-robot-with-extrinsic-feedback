@@ -106,7 +106,7 @@ def generate_path_image(DATA, step = 1):
         cv.circle(path_image, centre, 5, (255,255,0), 2)
         #cv.line(path_image, (right_shift_led1_x, right_shift_led1_y), led2, col, 2)
         #cv.line(path_image, (left_shift_led1_x, left_shift_led1_y), led2, col, 2)        
-        #print col
+        #log_print col
         #cv.circle(path_image, x[1], 1, copy.copy(col))
         #cv.imshow('Path_Image', path_image)
     return path_image
@@ -160,7 +160,7 @@ def draw_path_image(image, data):
         cv.circle(path_image, led1 - led2, 5, (255,255,0), 2)
         #cv.line(path_image, (right_shift_led2_x, right_shift_led2_y), led1, col, 2)
         #cv.line(path_image, (left_shift_led2_x, left_shift_led2_y), led1, col, 2)        
-        #print col
+        #log_print col
         #cv.circle(path_image, x[1], 1, copy.copy(col))
     #cv.imshow('Path_Image', image)
     return path_image

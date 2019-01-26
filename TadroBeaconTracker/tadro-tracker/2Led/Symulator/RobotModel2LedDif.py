@@ -27,10 +27,10 @@ class RobotModel2Led:
         axle_len = self.robot.axle_len
 
         if vel_1 == vel_0:
-            print(f'heading:{heading}')
+            log_print(f'heading:{heading}')
             x_pos += sin(-heading) * vel_0 * time_diff * 1.2
             y_pos += cos(-heading) * vel_0 * time_diff * 1.2
-            print(f'Pozycja w mdl: {sin(-heading) * vel_0 * time_diff}:{cos(-heading) * vel_0 * time_diff}')
+            log_print(f'Pozycja w mdl: {sin(-heading) * vel_0 * time_diff}:{cos(-heading) * vel_0 * time_diff}')
             self.robot.robot_center = (x_pos, y_pos)
             return
         #angular_vel = 1/axle_len(vel_0 - vel_1)
@@ -42,8 +42,8 @@ class RobotModel2Led:
         heading += (time_diff / local_axle) * (vel_1 - vel_0)
         heading = math.atan2(sin(heading), cos(heading))
         self.robot.heading = heading
-        print(f'heading:{heading}')
-        print(f'self.robot.robot_center:{self.robot.robot_center}')
+        log_print(f'heading:{heading}')
+        log_print(f'self.robot.robot_center:{self.robot.robot_center}')
 
         th = heading
         x_pos += cos(th / 2) * ( 2 * radius * sin(th/2))
@@ -75,10 +75,10 @@ if __name__ == "__main__":
     model = RobotModel2Led(robot, 2)
     #robot.simulate_robot(20, 20, 10)
     model.simulate_robot_process(0.2, 0, 1)
-    print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")
+    log_print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")
     model.simulate_robot_process(0, 0, 10)
-    print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")
+    log_print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")
     model.simulate_robot_process(-10, 10, 10)
-    print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")
+    log_print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")
     model.simulate_robot_process(5, 1, 10)
-    print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")
+    log_print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")

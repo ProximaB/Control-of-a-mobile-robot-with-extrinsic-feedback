@@ -5,7 +5,8 @@ import math
 import sys
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/trackers')
 from utils import *
-
+sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
+from logger import *
 def round_tuple(a):
     #return tuple(map(math.ceil, a))
     return tuple(map(round, a))
@@ -27,9 +28,9 @@ class Robot():
         self.heading = heading if heading != None else ''
         self.diamater = diamater if diamater != None else ''
 
-    def print(self):
+    def log_print(self):
         try:
-            print("|Time: {0:7.3f}, Position: ({1[0]:4}, {1[1]:4}), Heading: {2:7.4f}, {3:6.2f}|"
+            log_print("|Time: {0:7.3f}, Position: ({1[0]:4}, {1[1]:4}), Heading: {2:7.4f}, {3:6.2f}|"
                 .format(self.time, self.robot_center, self.heading, self.heading*180.0/np.pi))
         except Exception as e:
             raise e

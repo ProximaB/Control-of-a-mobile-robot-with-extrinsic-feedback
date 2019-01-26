@@ -12,6 +12,8 @@ from statusWindow import statusWindowText
 from robot import Robot2Led
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
 from RobotModel2Led import RobotModel2Led
+
+from scipy import ndimage
 # class robotSimulator:
 #Przekształcić do klasy, która będzie przechowywała stan i na wywołanie nextframe(input values for model)
 # zwróci kolejną klatkę,
@@ -26,9 +28,12 @@ class robotSimulationEnv:
 
         self.aruco_corners_img = [] 
         aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
-        for _id in CFG.CORNER_IDS:
+        for i, _id in enumerate(CFG.CORNER_IDS):
             aruco_img = aruco.drawMarker(aruco_dict, id = _id, sidePixels = CFG.SIDEPIXEL_ARUCO)
-            self.aruco_corners_img.append(cv.cvtColor(aruco_img, cv.COLOR_GRAY2BGR))
+            aruco_img =cv.cvtColor(aruco_img, cv.COLOR_GRAY2BGR)
+            aruco_img = ndimage.rotate(aruco_img, 180 - 90*i)
+
+            self.aruco_corners_img.append(aruco_img)
 
     def draw_robot_position(self, frame):
         # draw arruco corner markers
@@ -97,7 +102,7 @@ class robotSimulationEnv:
             elif key == ord('q'):
                 break;
 
-            print(f'L:{L} R:{R}')
+            log_print(f'L:{L} R:{R}')
             model.simulate_robot_process(L, R, 1.0)
             robot.calculate_led_pos()
 
@@ -130,7 +135,7 @@ class robotSimulationEnv:
 
         #Symulacja Robota
         #rysowanie_pozycji robota
-        print(f'L:{vel_0} R:{vel_1}')
+        log_print(f'L:{vel_0} R:{vel_1}')
         model.simulate_robot_process(vel_0, vel_1, time_diff)
         robot.calculate_led_pos()
 
