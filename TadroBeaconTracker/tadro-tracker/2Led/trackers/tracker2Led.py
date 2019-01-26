@@ -292,6 +292,7 @@ class Track2Led:
         if DATA.base_image is None:
             raise Exception("No base_iamge provided. {->detectAndTrack2LedRobot}")
         DATA.processed_image = DATA.base_image
+        DATA.processed_image = cv.bilateralFilter(DATA.processed_image, 25, 25, 25)
         
         if DATA.created_images == False:
             self.init_images(DATA, SETTINGS)
@@ -300,7 +301,7 @@ class Track2Led:
         self.threshold_image(DATA, SETTINGS)
         self.find_2Led(DATA, SETTINGS)
 
-        key_press_raw = cv.waitKey(5) # gets a raw key press
+        key_press_raw = cv.waitKey(1) # gets a raw key press
         key_press = key_press_raw & 0xFF # same as 255# sets all but the low 8 bits to 0
         
         # Handle key presses only (255 = "no key pressed")
