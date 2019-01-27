@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
 from skimage import exposure
+from line_profiler import LineProfiler
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
@@ -107,7 +108,6 @@ class TrackerBootstrap:
         #SETTINGS.velocity = 40
         
     ###################### CALLBACK FUNCTIONS #########################
-
     def onMouse(self, event, x, y, flags, param):
         """ Callback dla kliknięcia myszy na okno Previw"""
         # clicked the left button
@@ -249,7 +249,7 @@ def warp_iamge_aruco(image, DATA):
     warp = cv.warpPerspective(orig, M, (maxWidth, maxHeight))
     #cv.imshow('wrap image', warp)
     return (warp, maxHeight, maxWidth, M)
-
+@profile
 def main_default():
     # create settings object to store necessary data for further processing, 
     # we'll pass it to fcns later
@@ -283,6 +283,9 @@ def main_default():
         trackerBootstrap = TrackerBootstrap(SETTINGS, DATA)
     else:
         tracker = TrackArruco(DATA)
+
+    lp = LineProfiler()
+    lp.add_function(tracker.detectAndTrack)  
 
     ROBOT = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
     #Robot2Led(0, (0,0), 0, 0, 0) # w tym obiekcie będą przechowywane aktualne dane o robocie
@@ -466,7 +469,7 @@ def main_default():
                     #increment the frame counter, domyslnie = 0
                     # frame_counter += CFG.FRAME_RATE
 
-        time.sleep(0.02)
+        #time.sleep(0.02)
         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error, DATA.doWarpImage)
         #ROBOT.log_print()
