@@ -94,7 +94,7 @@ class Track2Led:
             R = Robot2Led(30, (12,32), np.pi/2,24.52,423.342) 
             return R.print()"""
             pass
-    @profile
+
     def threshold_image(self, DATA, SETTINGS):
         """ runs the image processing in order to create a 
             black and white thresholded image out of DATA.processed_image
@@ -183,7 +183,7 @@ class Track2Led:
         result = MIN_DIST < dist < MAX_DIST
 
         return result
-    @profile
+
     def find_2Led(self, DATA, SETTINGS):
         """ finds all the contours in threshed image, finds the largest of those,
             and then marks in in the main image
@@ -284,7 +284,7 @@ class Track2Led:
         else:
             DATA.robot_center = None
             DATA.heading = None
-    @profile
+
     def detectAndTrack(self, SETTINGS, DATA, ROBOT):
         """ this function organizes all of the processing
             done for each image from a camera type 2Led robot """

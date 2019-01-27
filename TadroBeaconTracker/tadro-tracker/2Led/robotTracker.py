@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
 from skimage import exposure
-from line_profiler import LineProfiler
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
@@ -249,7 +248,7 @@ def warp_iamge_aruco(image, DATA):
     warp = cv.warpPerspective(orig, M, (maxWidth, maxHeight))
     #cv.imshow('wrap image', warp)
     return (warp, maxHeight, maxWidth, M)
-@profile
+
 def main_default():
     # create settings object to store necessary data for further processing, 
     # we'll pass it to fcns later
@@ -283,9 +282,6 @@ def main_default():
         trackerBootstrap = TrackerBootstrap(SETTINGS, DATA)
     else:
         tracker = TrackArruco(DATA)
-
-    lp = LineProfiler()
-    lp.add_function(tracker.detectAndTrack)  
 
     ROBOT = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
     #Robot2Led(0, (0,0), 0, 0, 0) # w tym obiekcie będą przechowywane aktualne dane o robocie
@@ -436,8 +432,10 @@ def main_default():
             wasDrawn = False
 
         elif wasDrawn == False:
-            p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 'PID CONTROLL HEADING', 1)
-            p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 'PID CONTROLL VELOCITY', 2)
+            try:
+                p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 'PID CONTROLL HEADING', 1)
+                p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 'PID CONTROLL VELOCITY', 2)
+            except: pass
             #free arrays
             p1.show()
             p2.show()

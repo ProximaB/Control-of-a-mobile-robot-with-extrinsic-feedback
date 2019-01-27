@@ -15,8 +15,8 @@ D.AREA_WIDTH_REAL = 100 #[mm]
 # Robot settings 
 D.ROB_CNTR = (50, 25) # x, y
 D.HEADING = 0
-D.DIAMETER = 15#10 
-D.AXLE_LEN = 10 #7
+D.DIAMETER = 10 #15#10 
+D.AXLE_LEN = 7 #10 #7
 D.WHEEL_RADIUS = 2
 # Simulator settings
 D.W_HEIGHT = 840#588#640
@@ -28,7 +28,7 @@ D.FONT = cv.FONT_HERSHEY_SIMPLEX
 D.D_WIDTH = D.W_WIDTH - D.D_MARGIN_HORIZONTAL[0] - D.D_MARGIN_HORIZONTAL[1] #Wielkosc symulacji, potrzebne do policzenia skali 
 D.D_HEIGHT = D.W_HEIGHT - D.D_MARGIN_VERTICAL[0] - D.D_MARGIN_VERTICAL[1]   # w odniesieniu do wielkosci wykrytego oknaprzez kamere
 
-D.LED_RADIUS = 15#7#8 #px
+D.LED_RADIUS = 12#15#7#8 #px
 D.LED_THICKNES = -1#8 
 D.ROBOT_THICKNESS = 3
 
