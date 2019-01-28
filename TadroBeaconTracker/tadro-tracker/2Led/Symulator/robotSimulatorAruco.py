@@ -4,6 +4,7 @@ import sys
 import operator
 import math
 from math import cos, sin
+from scipy import ndimage
 import cv2.aruco as aruco
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
 from config import D as CFG
@@ -11,32 +12,17 @@ from logger import *
 from statusWindow import statusWindowText
 from robot import RobotAruco
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
-from RobotModel2Led import RobotModel2Led
+from RobotModel2Wheels import RobotModel2Wheels
 # class robotSimulator:
 #Przekształcić do klasy, która będzie przechowywała stan i na wywołanie nextframe(input values for model)
 # zwróci kolejną klatkę,
-W_HEIGHT = 640
-W_WIDTH = 1280
-D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
-D_MARGIN_VERTICAL = (10, 10)
-FONT = cv.FONT_HERSHEY_SIMPLEX
-    
-D_WIDTH = W_WIDTH - D_MARGIN_HORIZONTAL[0] - D_MARGIN_HORIZONTAL[1]
-D_HEIGHT = W_HEIGHT - D_MARGIN_VERTICAL[0] - D_MARGIN_VERTICAL[1]
-
-LED_RADIUS = 8
-LED_THICKNES = -1#8
-ROBOT_THICKNESS = 3
-
-AREA_POINTS = [(10,10), (-10,-10)] #punkty pola dodawane marginesy wys szer
-AREA_THICKNESS = 4
 
 def add(a, b):
     '''dodanie dwoch punktow, tuple '''
     return tuple(map(operator.add, a, b))
     
 class robotSimulationEnvAruco:
-    def __init__(self, model : RobotAruco, aruco_img):
+    def __init__(self, model : RobotModel2Wheels, aruco_img):
         self.model = model
         self.aruco_img = cv.cvtColor(aruco_img, cv.COLOR_GRAY2BGR)
 
@@ -84,10 +70,10 @@ class robotSimulationEnvAruco:
 
 
         rnd = tuple(map(round, robot_center))
-        dst = self.rotate_bound(self.aruco_img, robot.heading*180/np.pi)
+        dst = ndimage.rotate(self.aruco_img, robot.heading*180/np.pi)
         hd ,wd, cd= dst.shape
-        hh, ww = round(hd/2), round(wd/2)
-        frame[rnd[0]-hh: rnd[0]+hh, rnd[1]-ww: rnd[1]+ww] = dst
+        hh1, hh2, ww1, ww2 = math.ceil(hd/2), math.floor(hd/2), math.ceil(wd/2), math.floor(wd/2)
+        frame[rnd[0]-hh1: rnd[0]+hh2, rnd[1]-ww1: rnd[1]+ww2] = dst
         #robot circle    
         cv.circle(frame, rnd, round(diamater/2), (0, 0, 0), ROBOT_THICKNESS)
         #robot front half circle
@@ -98,8 +84,8 @@ class robotSimulationEnvAruco:
         color=(255, 0, 0)
         cv.ellipse(frame, rnd, axes, angle, startAngle, endAngle, color, ROBOT_THICKNESS)
         #pole robocze robota
-        shape_hw = frame.shape[1::-1]
-        cv.rectangle(frame, AREA_POINTS[0], add(shape_hw, AREA_POINTS[1]), 0, AREA_THICKNESS)
+        #shape_hw = frame.shape[1::-1]
+        #cv.rectangle(frame, AREA_POINTS[0], add(shape_hw, AREA_POINTS[1]), 0, AREA_THICKNESS)
 
     def simulation_keys_KLIO(self):
         win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
@@ -181,7 +167,7 @@ if __name__ == "__main__":
     aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
     aruco_img = aruco.drawMarker(aruco_dict, id = 1, sidePixels = 30)
     robot = RobotAruco(20, (500, 500), 0, 75, 50, 5)
-    model = RobotModel2Led(robot, 5)
+    model = RobotModel2Wheels(robot, 5)
     sim = robotSimulationEnvAruco(model, aruco_img)
     class cap:
         def read(self, x,y,z): return sim.simulate_return_image(x,y,z)

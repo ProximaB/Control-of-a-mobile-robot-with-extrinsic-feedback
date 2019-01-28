@@ -55,6 +55,7 @@ D.ARUCCO_ENUM = 2
 
 D.SIMULATION = True
 D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
+
 # Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
 D.TRACKER_TYPE = D.LED_ENUM
 
@@ -81,7 +82,7 @@ D.VIDEO_PATH = 1
 
 D.NUM_FRAMES_TO_SKIP = 0
 
-D.PLAY_IN_LOOP = True
+D.PLAY_IN_LOOP = False
 
 D.FRAME_RATE = 0
 

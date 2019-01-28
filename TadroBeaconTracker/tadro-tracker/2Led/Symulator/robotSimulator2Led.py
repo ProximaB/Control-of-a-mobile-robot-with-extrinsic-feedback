@@ -11,7 +11,7 @@ from logger import *
 from statusWindow import statusWindowText
 from robot import Robot2Led
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
-from RobotModel2Led import RobotModel2Led
+from RobotModel2Wheels import RobotModel2Wheels
 
 from scipy import ndimage
 # class robotSimulator:
@@ -22,8 +22,8 @@ def add(a, b):
     '''dodanie dwoch punktow, tuple '''
     return tuple(map(operator.add, a, b))
     
-class robotSimulationEnv:
-    def __init__(self, model : RobotModel2Led):
+class robotSimulationEnv2Led:
+    def __init__(self, model : RobotModel2Wheels):
         self.model = model
 
         self.aruco_corners_img = [] 
@@ -76,7 +76,7 @@ class robotSimulationEnv:
         mh = m+h
         mw = m+w
         frame[mw: -mw, mh: -mh] = area_frame
-        shape_hw = frame.shape[1::-1]
+        # shape_hw = frame.shape[1::-1]
         #cv.rectangle(frame, CFG.AREA_POINTS[0], add(shape_hw, CFG.AREA_POINTS[1]), 0, CFG.AREA_THICKNESS)
 
     def simulation_keys_KLIO(self):
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
     robot = Robot2Led(0, (50, 25), None, None, 0, 20, 15, 5)
     robot.calculate_led_pos()
-    model = RobotModel2Led(robot, 5)
+    model = RobotModel2Wheels(robot, 5)
     sim = robotSimulationEnv(model)
     class cap:
         def read(self, x,y,z): return sim.simulate_return_image(x,y,z)

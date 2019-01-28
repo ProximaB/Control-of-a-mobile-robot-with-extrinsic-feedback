@@ -61,7 +61,11 @@ def generate_path_image(DATA, step = 1):
    # for i, unpackedRobot in enumerate(DATA.robot_data):
     for i in range(0, len(DATA.robot_data), step):
         unpackedRobot = DATA.robot_data[i]
-        led1_pos, led2_pos, time, robot_center, heading, diamater, axle_len = unpackedRobot
+        if len(unpackedRobot) == 7:
+            led1_pos, led2_pos, time, robot_center, heading, diamater, axle_len = unpackedRobot
+        else:
+            time, robot_center, heading, diamater, axle_len = unpackedRobot
+
         if (robot_center== None):
             continue
         '''
@@ -88,10 +92,10 @@ def generate_path_image(DATA, step = 1):
                 counter += 1
                 counter = counter%3
                 
-        led2 = led2_pos
-        led1 = led1_pos
+        #led2 = led2_pos
+        #led1 = led1_pos
         #angle of arrow in radians
-        arrow_angle = .3
+        #arrow_angle = .3
         #rotating the led1 LED about the front LED to make an arrow
         #right_shift_led1_x = int(led2[0] + (led1[0] -right_shift_led1_x = int(led2[0] + (led1[0] -right_shift_led1_x = int(led2[0] + (led1[0] - led2[0])*math.cos(arrow_angle) - (led1[1] - led2[1])*math.sin(arrow_angle))
         #right_shift_led1_y = int(led2[1] + (led1[1] - led2[1])*math.cos(arrow_angle) - (led1[0] - led2[0])*math.sin(arrow_angle))

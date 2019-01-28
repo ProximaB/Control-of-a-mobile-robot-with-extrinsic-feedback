@@ -2,6 +2,7 @@
 import numpy as np
 import cv2 as cv
 import math
+from math import cos, sin
 import copy
 import sys
 from os.path import normpath
@@ -13,6 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 from scipy.interpolate import BSpline, make_interp_spline #  Switched to BSpline
 from skimage import exposure
+import cv2.aruco as aruco
 ''' Import custom modules '''
 # add local path to make interpreter able to obtain custom modules. (when u run  py from glob scope)
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
@@ -22,9 +24,10 @@ from config import D as CFG
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/trackers')
 # import tracker class
 from tracker2Led import Track2Led
+
 from trackerArruco import TrackArruco
 # import Robot class
-from robot import Robot2Led, RobotAruco
+from robot import Robot, Robot2Led, RobotAruco
 # custom simpl logger
 from logger import *
 # import utils
@@ -35,8 +38,14 @@ from statusWindow import statusWindow
 from PID import PID as pid
 
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
-# sim
-from robotSimulator import *
+
+# sim envs
+from robotSimulator2Led import robotSimulationEnv2Led
+
+from robotSimulatorAruco import robotSimulationEnvAruco
+
+# models
+from RobotModel2Wheels import RobotModel2Wheels
 
 class Settings(object):
     pass
@@ -284,20 +293,31 @@ def main_default():
         tracker = TrackArruco(DATA)
 
     ROBOT = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+    ROBOT.calculate_led_pos()# = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+                # ROBOT.calculate_led_pos()
     #Robot2Led(0, (0,0), 0, 0, 0) # w tym obiekcie będą przechowywane aktualne dane o robocie
 
     if CFG.SIMULATION:#diamater=10, axle_len=10, wheel_radius=5
         
-        simRobot = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
-        simRobot.calculate_led_pos()
-        model = RobotModel2Led(simRobot)
-        sim = robotSimulationEnv(model)
+        if CFG.TRACKER_TYPE is CFG.LED_ENUM:
+            ROBOT = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+            ROBOT.calculate_led_pos()
+
+            simRobot = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+            simRobot.calculate_led_pos()
+            model = RobotModel2Wheels(simRobot)
+            sim = robotSimulationEnv2Led(model)
+        else:
+            #Init Tracker's Robot Object
+            simRobot = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+            model = RobotModel2Wheels(simRobot)
+            sim = robotSimulationEnvAruco()
         
         if CFG.CAMERA_FEEDBACK:
             sim.simulate_return_image(0,0,0.01)
             capture = cv.VideoCapture(CFG.VIDEO_PATH)
-        #else:
-            #capture = sim.simulate_return_image(0,0,0.01)
+        else:
+            capture = sim.simulate_return_image(0,0,0.01)
     else:
         capture = cv.VideoCapture(CFG.VIDEO_PATH)
 
@@ -390,6 +410,7 @@ def main_default():
         #DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
+        #zaimplementowana wyżej
 
         """################## ROBOT DETECTION AND TRACKING ######################"""
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
@@ -472,7 +493,8 @@ def main_default():
         sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error, DATA.doWarpImage)
         #ROBOT.log_print()
         hI, wI, _ = DATA.base_image.shape
-        DATA.robot_data.append(ROBOT.unpackImg(hI, CFG.AREA_HEIGHT_REAL, wI, CFG.AREA_WIDTH_REAL))   
+        #print((hI, CFG.AREA_HEIGHT_REAL, wI, CFG.AREA_WIDTH_REAL)
+        if CFG.SHOW_PATH: DATA.robot_data.append(ROBOT.unpackImg(hI, CFG.AREA_HEIGHT_REAL, wI, CFG.AREA_WIDTH_REAL))   
 
         k = cv.waitKey(2) & 0xFF
         if k == ord('p'):
@@ -481,7 +503,7 @@ def main_default():
         elif k == ord('q'):
             break
     
-    path_img = generate_path_image(DATA)
+    #path_img = generate_path_image(DATA)
     #zapis path image na dysk
     file_path = r'C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\2Led\paths'
     save_image(path_img, f'RobotPath_' + f'{datetime.now():%Y%m%d_%H%M%S}', file_path)
@@ -511,7 +533,7 @@ def main_default():
 
 #     ROBOT = Robot2Led(0, (0,0), 0, 0, 0)
 #     simRobot = Robot2Led(20, (500, 300), (500, 480), (500, 520), 0, 75, 50, 5)
-#     model = RobotModel2Led(simRobot)
+#     model = RobotModel2Wheels(simRobot)
 #     sim = robotSimulationEnv(model)
 
 #     PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1)

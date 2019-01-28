@@ -10,11 +10,11 @@ class statusWindow:
     def drawData(self, position, heading, error, heading_error, doWarping):
         x, y = position
         font = cv.FONT_HERSHEY_SIMPLEX
-        cv.putText(self.image, f'X:   {x}', (1, 33), font, 1, (255,255,255), 2, cv.LINE_AA)
-        cv.putText(self.image, f'Y:   {y}', (1, 66), font, 1, (255,255,255), 2, cv.LINE_AA)
-        cv.putText(self.image, 'Th:  {0}'.format(heading*180.0/np.pi), (1,99), font, 1, (255,255,255), 2, cv.LINE_AA)
-        cv.putText(self.image, f'E:   {error}', (1,132), font, 1, (255,255,255), 2, cv.LINE_AA)
-        cv.putText(self.image, f'ThE: {heading_error*180.0/np.pi}', (1,165), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'X:   {round(x, ndigits = 3)}', (1, 33), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'Y:   {round(y, ndigits = 3)}', (1, 66), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, 'Th:  {0}'.format(round(heading*180.0/np.pi, ndigits=3)), (1,99), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'E:   {round(error, ndigits = 3)}', (1,132), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'ThE: {round(heading_error*180.0/np.pi, ndigits=3)}', (1,165), font, 1, (255,255,255), 2, cv.LINE_AA)
         cv.putText(self.image, f'Do warp: {doWarping}', (1,195), font, 1, (255,255,255), 2, cv.LINE_AA)
 
         #cv.namedWindow(self.win_name, cv.WINDOW_FREERATIO)
@@ -28,9 +28,9 @@ class statusWindowText:
     def drawData(self, position, heading, error, heading_error, color=(255,255,255)):
         x, y = position
         font = cv.FONT_HERSHEY_SIMPLEX
-        cv.putText(self.image, f'X:   {int(x)}', (1, 33), font, 1, color, 2, cv.LINE_AA)
-        cv.putText(self.image, f'Y:   {int(y)}', (1, 66), font, 1, color, 2, cv.LINE_AA)
-        cv.putText(self.image, 'Th:  {0}'.format(round(heading*180.0/np.pi), 2), (1,99), font, 1, color, 2, cv.LINE_AA)
+        cv.putText(self.image, f'X:   {round(x, ndigits= 3)}', (1, 33), font, 1, color, 2, cv.LINE_AA)
+        cv.putText(self.image, f'Y:   {round(y, ndigits = 3)}', (1, 66), font, 1, color, 2, cv.LINE_AA)
+        cv.putText(self.image, 'Th:  {0}'.format(round(heading*180.0/np.pi, ndigits = 3)), (1,99), font, 1, color, 2, cv.LINE_AA)
         #cv.putText(self.image, f'E:   {error}', (1,132), font, 1, color, 2, cv.LINE_AA)
         #cv.putText(self.image, f'ThE: {round(heading_error*180.0/np.pi)}', (1,165), font, 1, color, 2, cv.LINE_AA)
 

@@ -3,15 +3,15 @@ import numpy as np
 import math
 import sys
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
-from robot import Robot2Led
+from robot import Robot, Robot2Led, RobotAruco
 from logger import *
 
 def round_tuple(a):
     #return tuple(map(math.ceil, a))
     return tuple(map(round, a))
 
-class RobotModel2Led:
-    def __init__(self, robot : Robot2Led, round_pos = 10):
+class RobotModel2Wheels:
+    def __init__(self, robot : Robot, round_pos = 10):
         self.robot = robot
         self.round_pos = round_pos
 
@@ -21,7 +21,7 @@ class RobotModel2Led:
     #def simulate_path(self, velocity, trun, time_diff):
         # model - > x,y heading
     
-    def simulate_robot(self, vel_0, vel_1, time_diff):
+    """ def simulate_robot(self, vel_0, vel_1, time_diff):
         x_pos, y_pos = self.robot.robot_center
         heading = self.robot.heading
         axle_len = self.robot.axle_len
@@ -48,7 +48,7 @@ class RobotModel2Led:
         th = heading
         x_pos += cos(th / 2) * ( 2 * radius * sin(th/2))
         y_pos += sin(th / 2) * ( 2 * radius * sin(th/2))
-        self.robot.robot_center = (x_pos, y_pos)
+        self.robot.robot_center = (x_pos, y_pos) """
 
     def simulate_robot_2nd_attemp(self, Vl, Vr, time_diff):
         x_pos, y_pos = self.robot.robot_center
@@ -94,7 +94,7 @@ class RobotModel2Led:
         #log_info(f'robot_center: {self.robot.robot_center}')
 if __name__ == "__main__":
     robot = Robot2Led(0, (0,0), (10,10), (20,20), np.pi/2)
-    model = RobotModel2Led(robot, 2)
+    model = RobotModel2Wheels(robot, 2)
     #robot.simulate_robot(20, 20, 10)
     model.simulate_robot_process(0.2, 0, 1)
     log_print(f"|x_pos:{robot.robot_center[0]}| y_pos:{robot.robot_center[1]}| heading:{robot.heading}|")

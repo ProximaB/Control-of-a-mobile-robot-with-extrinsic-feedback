@@ -87,3 +87,13 @@ class RobotAruco(Robot):
     
     def unpack(self):
         return (self.time, self.robot_center, self.heading, self.diamater, self.axle_len)
+
+    def unpackImg(self, hI, hR, wI, wR):
+        imgMax = (hI, wI)
+        realMax = (hR, wR)
+
+        robot_center = map_point_to_img(self.robot_center, imgMax, realMax)
+        diamater = map_real_to_img(self.diamater, imgMax[0], realMax[0])
+        axle_len = map_real_to_img(self.axle_len, imgMax[0], realMax[0])
+
+        return (self.time, robot_center, self.heading, diamater, axle_len)

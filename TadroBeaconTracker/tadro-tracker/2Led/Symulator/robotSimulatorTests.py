@@ -9,7 +9,7 @@ from logger import *
 from statusWindow import statusWindowText
 from robot import Robot2Led
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
-from RobotModel2Led import RobotModel2Led
+from RobotModel2Wheels import RobotModel2Wheels
 # class robotSimulator:
 #Przekształcić do klasy, która będzie przechowywała stan i na wywołanie nextframe(input values for model)
 # zwróci kolejną klatkę,
@@ -64,7 +64,7 @@ def simulation_keys_JKL():
     #rysowanie_pozycji robota
     draw_robot_position(robot, display_frame)
 
-    model = RobotModel2Led(robot, 10)
+    model = RobotModel2Wheels(robot, 10)
     model.simulate_robot_process(0,0,1)
 
     cv.imshow('result', win_frame)
@@ -112,7 +112,7 @@ def simulation_keys_KLIO():
     #rysowanie_pozycji robota
     draw_robot_position(robot, display_frame)
 
-    model = RobotModel2Led(robot, 5)
+    model = RobotModel2Wheels(robot, 5)
     model.simulate_robot_process(0,0,1)
 
     cv.imshow('result', win_frame)
