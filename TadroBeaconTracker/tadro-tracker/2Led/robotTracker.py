@@ -165,6 +165,44 @@ class TrackerBootstrap:
         capture.set(CV_CAP_PROP_POS_FRAMES, frame_counter)
         return True
 
+class ArucoTrackerBootstrap:
+    def __init__(self, SETTINGS, DATA):
+        self.SETTINGS = SETTINGS
+        self.DATA = DATA
+
+    def setup_thresholds_sliders(self):
+        SETTINGS = self.SETTINGS
+        DATA = self.DATA
+        
+        cv.namedWindow('Tracing and Recognition.'); cv.moveWindow('Tracing and Recognition.', 0, 0)
+        #cv.createTrackbar('Slider_heading', 'Tracing and Recognition.', DATA.targetHeading, 360, self.change_heading,)
+        cv.createTrackbar('0 : OFF \n1 : ON','Tracing and Recognition.',0,1, self.switch)
+        # Set the method to handle mouse button presses
+        cv.setMouseCallback('Tracing and Recognition.', self.onMouse, DATA)
+        SETTINGS.last_key_pressed = 255
+        #SETTINGS.last_posn = (0,0)
+        #SETTINGS.velocity = 40
+
+    ###################### CALLBACK FUNCTIONS #########################
+    def onMouse(self, event, x, y, flags, param):
+        """ Callback dla kliknięcia myszy na okno Previw"""
+        # clicked the left button
+        if event==cv.EVENT_LBUTTONDOWN:
+            h,w,c = param.base_image.shape 
+            xR = map_img_to_real(x, w, CFG.AREA_WIDTH_REAL)
+            yR = map_img_to_real(y, h, CFG.AREA_HEIGHT_REAL)
+            self.DATA.target = (xR,yR)
+            log_print('X, Y:', xR, yR, "    ", end=' ')
+            (b,g,r) = self.DATA.processed_image[y,x]
+            log_print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
+            (h,s,v) = self.DATA.hsv[y,x]
+            log_print('H, S, V', int(h), int(s), int(v))
+            self.DATA.down_coord = (x,y)
+            
+    def switch(self, onOff):
+        self.SETTINGS.START = onOff
+        log_print(f'Settings.START: {onOff}')
+
 def draw_plot(feedback_list, setpoint_list, time_list, title, id):
     time_sm = np.array(time_list)
     time_smooth = np.linspace(time_sm.min(), time_sm.max(), 300)
@@ -291,7 +329,7 @@ def main_default():
         trackerBootstrap = TrackerBootstrap(SETTINGS, DATA)
     else:
         tracker = TrackArruco(DATA)
-
+        trackerBootstrap = ArucoTrackerBootstrap(SETTINGS, DATA)
     ROBOT = None #= Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
     #ROBOT.calculate_led_pos()# = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
                 # ROBOT.calculate_led_pos()
@@ -308,20 +346,23 @@ def main_default():
             model = RobotModel2Wheels(simRobot)
             sim = robotSimulationEnv2Led(model)
 
-            log_info('Inicjalizacja sliderow do thresholdingu.')
-            trackerBootstrap.setup_thresholds_sliders()
-
             if (CFG.AUTO_LOAD_THRESHOLDS):
                 load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
 
         else:
+            aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
+            robot_aruco_img = aruco.drawMarker(aruco_dict, id = CFG.ROBOT_ID, sidePixels = CFG.ARUCO_SIDE_PIXELS)
+
             #Init Tracker's Robot Object
             ROBOT = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             
             simRobot = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             model = RobotModel2Wheels(simRobot)
-            sim = robotSimulationEnvAruco()
-        
+            sim = robotSimulationEnvAruco(model, robot_aruco_img)
+
+        log_info('Inicjalizacja sliderow do thresholdingu.')
+        trackerBootstrap.setup_thresholds_sliders() 
+            
         if CFG.CAMERA_FEEDBACK:
             sim.simulate_return_image(0,0,0.01)
             capture = cv.VideoCapture(CFG.VIDEO_PATH)

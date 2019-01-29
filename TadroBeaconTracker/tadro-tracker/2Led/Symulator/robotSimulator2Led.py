@@ -143,13 +143,9 @@ class robotSimulationEnv2Led:
         
         #wyświetlanie okna prezentującego symulacje i ważne parametry robota
         win_frame = np.ones((CFG.W_HEIGHT, CFG.W_WIDTH, 3), dtype='uint8') #czyszczenie win_frame
-        win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
-        
         # wypisywanie statusu
         sw = statusWindowText(win_frame)
         sw.drawData(robot.robot_center, robot.heading, 0, 0)
-        #wyswietlenie na oknie
-        cv.imshow('Simulator Window', win_frame)
         # nakładanie display_frame na win_frame
         win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
         #wyswitlanie podglądu symulacji w osobnym oknie
@@ -161,10 +157,10 @@ if __name__ == "__main__":
     aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
     arruco_img = aruco.drawMarker(aruco_dict, id = 1, sidePixels = 30)
 
-    robot = Robot2Led(0, (50, 25), None, None, 0, 20, 15, 5)
+    robot = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
     robot.calculate_led_pos()
     model = RobotModel2Wheels(robot, 5)
-    sim = robotSimulationEnv(model)
+    sim = robotSimulationEnv2Led(model)
     class cap:
         def read(self, x,y,z): return sim.simulate_return_image(x,y,z)
     

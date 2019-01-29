@@ -12,15 +12,39 @@ D = Data()
 D.AREA_HEIGHT_REAL = 50 #[mm] 12.8 razy mniejsze niz pix 12.8mm/px
 D.AREA_WIDTH_REAL = 100 #[mm]
 
-# Robot settings 
-D.ROB_CNTR = (50, 25) # x, y
-D.HEADING = 0
-D.DIAMETER = 10 #15#10 
-D.AXLE_LEN = 7 #10 #7
-D.WHEEL_RADIUS = 2
-# Simulator settings
-D.W_HEIGHT = 840#588#640
-D.W_WIDTH =  1480#1036#1280
+D.LED_ENUM = 1
+D.ARUCCO_ENUM = 2
+
+D.SIMULATION = True
+D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
+
+# Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
+D.TRACKER_TYPE = D.ARUCCO_ENUM # D.LED_ENUM
+
+if D.TRACKER_TYPE is D.LED_ENUM:
+    # Robot settings 
+    D.ROB_CNTR = (50, 25) # x, y
+    D.HEADING = 0
+    D.DIAMETER = 10 #15#10 
+    D.AXLE_LEN = 7 #10 #7
+    D.WHEEL_RADIUS = 2
+    # Simulator settings
+    D.W_HEIGHT = 840#588#640
+    D.W_WIDTH =  1480#1036#1280
+    
+elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
+    # Robot settings 
+    D.ROB_CNTR = (50, 25) # x, y
+    D.HEADING = 0
+    D.DIAMETER = 15 #15#10 
+    D.AXLE_LEN = 10 #10 #7
+    D.WHEEL_RADIUS = 2
+    # Simulator settings
+    D.W_HEIGHT = 840#588#640
+    D.W_WIDTH =  1480#1036#1280
+
+    D.ARUCO_SIDE_PIXELS = 70
+#############
 D.D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
 D.D_MARGIN_VERTICAL = (10, 10)
 D.FONT = cv.FONT_HERSHEY_SIMPLEX
@@ -50,14 +74,7 @@ D.MARGIN_ARUCO = 40 #30
 #Settings for PID controller
 #angular controll
 
-D.LED_ENUM = 1
-D.ARUCCO_ENUM = 2
 
-D.SIMULATION = True
-D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
-
-# Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
-D.TRACKER_TYPE = D.LED_ENUM
 
 D.PROPORTIONAL1 = 1.0 #proporcjonalny
 D.INTEGRAL1 = 1.0 #całka
