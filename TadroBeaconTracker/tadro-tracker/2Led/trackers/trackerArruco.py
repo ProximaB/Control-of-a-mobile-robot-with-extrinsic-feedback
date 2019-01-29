@@ -8,25 +8,53 @@ sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/')
 # load Config
 from config import D as CFG
 from utils import *
+# import Robot clases
+from robot import Robot, Robot2Led, RobotAruco
+
+import cv2.aruco as aruco
 
 class TrackArruco:
-    def __init__(self, DATA):
+    def __init__(self, ):
         DATA.created_images = False
         self.time = time.clock()
 
     def find_arruco(self, DATA, SETTINGS):
-        pass
+        image = DATA.processed_image
+        gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
+        parameters = aruco.DetectorParameters_create()
+        corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
     
+        DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, corners)
+        return 
+    
+    def midpoint(self, p1, p2):
+        return  ((p1.x+p2.x)/2.0, (p1.y+p2.y)/2.0)
+
     def detectAndTrack(self, SETTINGS, DATA, ROBOT):
-        """ this function organizes all of the processing
-            done for each image from a camera type 2Led robot """
-        # somewhere self.find_arruco()
         if DATA.base_image is None:
             raise Exception("No base_iamge provided. {->detectAndTrack2LedRobot}")
-        DATA.processed_image = DATA.base_image
+        image = DATA.base_image
+        RB, LB, LT, RT = DATA.robot_cntr
+        robot_center_img = self.midpoint(RB, LT)
+        
+        hI, wI, _ = DATA.processed_image.shape
+        imgMax = (hI, wI)
+
+        hR, wR = CFG.AREA_HEIGHT_REAL, CFG.AREA_WIDTH_REAL
+        realMax = (hR, wR)
+
+        ROBOT.robot_center = map_point_to_img(robot_center_img, imgMax, realMax)
+
+        ROBOT.heading =  math.atan2(RB[0]-LT[0], RB[1]-LT[1]) + -np.pi
+        ROBOT.heading = -1 * math.atan2(math.sin(ROBOT.heading), math.cos(ROBOT.heading))
+
+        DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, DATA.robot_cntr)
         # updatee the displays:
+        cv.circle(DATA.base_image, )
         cv.circle(DATA.base_image, DATA.target, 3, (255,0,0), 2, -1)
-        cv.imshow('Tracing and Recognition.', DATA.base_image)
+        cv.imshow('Tracing and Recognition.', self.DATA.base_image)
+        
         if (DATA.robot_center and DATA.led2_pos) != ('' or None):
             return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.heading)
         else: return ROBOT

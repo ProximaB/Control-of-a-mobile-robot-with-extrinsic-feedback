@@ -1,9 +1,9 @@
 def log_info(message):
-    return
+    #return
     print(f'[INFO] {message}')
 
 def log_warn(message,  error = None):
-    return
+    #return
     print(f'[WARN] {message}')
     if error is None: return
 
@@ -11,7 +11,7 @@ def log_warn(message,  error = None):
           '  Continue...')
 
 def log_error(message, error = None):
-    return
+    #return
     print(f'[ERROR] {message}')
     if error is None: return
 
@@ -19,5 +19,6 @@ def log_error(message, error = None):
           '  Continue...')
 
 def log_print(*args, **nargs):
-    return
+    #return
     print(*args, **nargs)
+                                                                                                                                                                                                                                                                                                                                                                                                                                
