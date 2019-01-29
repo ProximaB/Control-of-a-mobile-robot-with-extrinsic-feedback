@@ -292,8 +292,8 @@ def main_default():
     else:
         tracker = TrackArruco(DATA)
 
-    ROBOT = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
-    ROBOT.calculate_led_pos()# = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+    ROBOT = None #= Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+    #ROBOT.calculate_led_pos()# = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
                 # ROBOT.calculate_led_pos()
     #Robot2Led(0, (0,0), 0, 0, 0) # w tym obiekcie będą przechowywane aktualne dane o robocie
 
@@ -307,8 +307,17 @@ def main_default():
             simRobot.calculate_led_pos()
             model = RobotModel2Wheels(simRobot)
             sim = robotSimulationEnv2Led(model)
+
+            log_info('Inicjalizacja sliderow do thresholdingu.')
+            trackerBootstrap.setup_thresholds_sliders()
+
+            if (CFG.AUTO_LOAD_THRESHOLDS):
+                load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
+
         else:
             #Init Tracker's Robot Object
+            ROBOT = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+            
             simRobot = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             model = RobotModel2Wheels(simRobot)
             sim = robotSimulationEnvAruco()
@@ -334,29 +343,22 @@ def main_default():
 
         # prawdziwy numer klatki
         frame_counter = CFG.NUM_FRAMES_TO_SKIP
-
     
-    log_info('Inicjalizacja sliderow do thresholdingu.')
-    trackerBootstrap.setup_thresholds_sliders()
-
-    if (CFG.AUTO_LOAD_THRESHOLDS):
-        load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
-
     PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1)
     PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
     
     PID1.SetPoint = 0
     PID1.setSampleTime(0.02)
     PID1.update(0)
-    PID1.setWindup(5.0)
+    PID1.setWindup(3.0)
 
     PID2.SetPoint = 0
     PID2.setSampleTime(0.02)
     PID2.update(0)
-    PID2.setWindup(5.0)
+    PID2.setWindup(3.0)
 
-    feedback_list = [[],[]]
-    time_list =  [[],[]]
+    feedback_list = [[], []]
+    time_list =  [[], []]
     setpoint_list =  [[],[]]
 
     wasDrawn = True
@@ -405,9 +407,11 @@ def main_default():
             else:
                 frame = sim.simulate_return_image(vel_1, vel_2, 0.01)
        
-        if DATA.doWarpImage is True: DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, M = warp_iamge_aruco(frame, DATA)
-        else: DATA.base_image = cv.warpPerspective(frame, M, (DATA.area_width_captured, DATA.area_height_captured))
-        #DATA.base_image = frame
+        if DATA.doWarpImage is True: 
+            DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, DATA.M = warp_iamge_aruco(frame, DATA)
+        else: 
+            DATA.base_image = cv.warpPerspective(frame, DATA.M, (DATA.area_width_captured, DATA.area_height_captured))
+         #DATA.base_image = frame
         """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
         #zaimplementowana wyżej
