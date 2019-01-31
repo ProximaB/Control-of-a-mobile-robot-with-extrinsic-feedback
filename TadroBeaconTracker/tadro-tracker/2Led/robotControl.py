@@ -248,7 +248,7 @@ def warp_iamge_aruco(image, DATA):
         for i in range(4): 
             x, y = sub_t(corners[i][0][0], DATA.prevCorners[i][0][0])
             subs += math.sqrt(x**2 + y**2)
-        if subs < 50:
+        if subs < CFG.WARP_TOLERANCE:
            corners = DATA.prevCorners
         else:
             log_print("Movement affected affine trans.")
@@ -346,6 +346,9 @@ def main_default():
             model = RobotModel2Wheels(simRobot)
             sim = robotSimulationEnv2Led(model)
 
+            log_info('Inicjalizacja sliderow do thresholdingu.')
+            trackerBootstrap.setup_thresholds_sliders()
+
             if (CFG.AUTO_LOAD_THRESHOLDS):
                 load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
 
@@ -360,8 +363,10 @@ def main_default():
             model = RobotModel2Wheels(simRobot)
             sim = robotSimulationEnvAruco(model, robot_aruco_img)
 
-        log_info('Inicjalizacja sliderow do thresholdingu.')
-        trackerBootstrap.setup_thresholds_sliders() 
+            log_info('Inicjalizacja sliderow do thresholdingu.')
+            trackerBootstrap.setup_thresholds_sliders()
+
+ 
             
         if CFG.CAMERA_FEEDBACK:
             sim.simulate_return_image(0,0,0.01)

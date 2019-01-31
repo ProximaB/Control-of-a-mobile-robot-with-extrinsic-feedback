@@ -50,16 +50,16 @@ class RobotModel2Wheels:
         y_pos += sin(th / 2) * ( 2 * radius * sin(th/2))
         self.robot.robot_center = (x_pos, y_pos) """
 
-    def simulate_robot_2nd_attemp(self, Vl, Vr, time_diff):
+    def simulate_robot(self, Vl, Vr, time_diff):
         x_pos, y_pos = self.robot.robot_center
         heading = self.robot.heading
-        axle_len = self.robot.diamater/2
+        axle_len = self.robot.axle_len
         wheel_radius = self.robot.wheel_radius  
         #angular_vel = 1/axle_len(vel_0 - vel_1)
         #distance = vel * time_diff
         
         # theta
-        heading += wheel_radius/axle_len * (Vr - Vl) * time_diff
+        heading += wheel_radius/axle_len/2 * (Vr - Vl) * time_diff
         heading = math.atan2(sin(heading), cos(heading)) #0 - Pi dla kąta w lewo i -Pi, 0 
         #heading = heading % (2*np.pi)
         self.robot.heading = heading
@@ -83,7 +83,7 @@ class RobotModel2Wheels:
         self.robot.heading = heading
 
     def simulate_robot_process(self, vel_0, vel_1, time_diff):
-        self.simulate_robot_2nd_attemp(vel_0, vel_1, time_diff)
+        self.simulate_robot(vel_0, vel_1, time_diff)
         #self.simulate_robot(vel_0, vel_1, time_diff)
         #self.round_robot_properties()
         #self.robot.robot_center = round_tuple(self.robot.robot_center)

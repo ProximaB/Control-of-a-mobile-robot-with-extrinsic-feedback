@@ -13,6 +13,8 @@ from statusWindow import statusWindowText
 from robot import RobotAruco
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
 from RobotModel2Wheels import RobotModel2Wheels
+sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/trackers')
+from trackerArruco import TrackArruco
 # class robotSimulator:
 #Przekształcić do klasy, która będzie przechowywała stan i na wywołanie nextframe(input values for model)
 # zwróci kolejną klatkę,
@@ -85,22 +87,28 @@ class robotSimulationEnvAruco:
 
         rnd = tuple(map(round, robot_center))
         #rysowanie markera
-        area_frame[rnd[1]-hh1: rnd[1]+hh2, rnd[0]-ww1: rnd[0]+ww2] = dst
-        cv.circle(area_frame, rnd, round(diamater/2), (255, 0, 255), CFG.ROBOT_THICKNESS)
+        chck1 = rnd[0] - hh1
+        chck2 = rnd[0] + hh2
 
-        #robot front half circle
-        #radiu jest loiczny od roztawu kół nie od szerokosci robota.. któa jest wykorzystywana do rysowania
-        radius=round(diamater/2); axes = (radius,radius)
-        angle=heading*180.0/np.pi
-        startAngle=-30; endAngle=30#0-180def
-        color=(255, 255, 0)
-        cv.ellipse(area_frame, rnd, axes, angle, startAngle, endAngle, color, CFG.ROBOT_THICKNESS)
-        #pole robocze robota
-        mh = m+h
-        mw = m+w
-        frame[mh: -mh, mw: -mw] = area_frame
-        # shape_hw = frame.shape[1::-1]
-        #cv.rectangle(frame, CFG.AREA_POINTS[0], add(shape_hw, CFG.AREA_POINTS[1]), 0, CFG.AREA_THICKNESS)
+        chck3 = rnd[1] - ww1
+        chck4 = rnd[1] + ww2
+        #jezeli robot znajduje się w polu roboczym rysuj.. width -> x, height y
+        if 0<=chck1<=true_width and 0<=chck2<=true_width and 0 <=chck3<=true_height and 0<=chck4<=true_height:
+            area_frame[rnd[1]- hh1: rnd[1]+ hh2, rnd[0]- ww1: rnd[0]+ ww2] = dst
+            cv.circle(area_frame, rnd, round(diamater/2), (255, 0, 255), CFG.ROBOT_THICKNESS)
+            #robot front half circle
+            #radiu jest loiczny od roztawu kół nie od szerokosci robota.. któa jest wykorzystywana do rysowania
+            radius=round(diamater/2); axes = (radius,radius)
+            angle=heading*180.0/np.pi
+            startAngle=-30; endAngle=30 #0-180def
+            color=(255, 255, 0)
+            cv.ellipse(area_frame, rnd, axes, angle, startAngle, endAngle, color, CFG.ROBOT_THICKNESS)
+            #pole robocze robota
+            mh = m+h
+            mw = m+w
+            frame[mh: -mh, mw: -mw] = area_frame
+            # shape_hw = frame.shape[1::-1]
+            #cv.rectangle(frame, CFG.AREA_POINTS[0], add(shape_hw, CFG.AREA_POINTS[1]), 0, CFG.AREA_THICKNESS)
 
     def simulation_keys_KLIO(self):
         win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
@@ -158,7 +166,7 @@ class robotSimulationEnvAruco:
         #Symulacja Robota
         #rysowanie_pozycji robota
         print(f'L:{vel_0} R:{vel_1}')
-        model.simulate_robot_process(vel_0, vel_1, time_diff)
+        model.simulate_robot_process(-vel_0, -vel_1, time_diff)
 
         self.draw_robot_position(display_frame)
         
@@ -180,6 +188,10 @@ if __name__ == "__main__":
     robot = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
     model = RobotModel2Wheels(robot, 5)
     sim = robotSimulationEnvAruco(model, aruco_img)
+    class DATA:
+        pass
+    data = DATA()
+    data.target = (100,100)
     class cap:
         def read(self, x,y,z): return sim.simulate_return_image(x,y,z)
     
@@ -187,6 +199,13 @@ if __name__ == "__main__":
     pic1 = sim.simulate_return_image(0,0,1)
     pic2 = sim.simulate_return_image(2,-2,2)
     pic3 = sim.simulate_return_image(3,4,2)
+
+    ctrRobot = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
+    data.base_image = sim.simulate_return_image(3,4,2)
+    tracker = TrackArruco(data)
+    ROBOT = tracker.detectAndTrack(None, data, ctrRobot)
+    print(f'XY: {ctrRobot.robot_center}, HEADING: {ctrRobot.heading}')
+
     #pic3 = capture.read(2,4,4)
     cv.imshow('1', pic1)
     cv.imshow('2', pic2)

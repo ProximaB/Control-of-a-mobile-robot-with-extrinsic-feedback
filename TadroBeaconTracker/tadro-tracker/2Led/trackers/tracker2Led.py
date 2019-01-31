@@ -166,10 +166,10 @@ class Track2Led:
         # erozja dylatacja w zaleznosci od potrzeb
         #cv.erode(DATA.threshed_images, DATA.threshed_images, iterations = 1)
         #cv.dilate(DATA.threshed_images, DATA.threshed_images, iterations = 1)
-        kernel = np.ones((5,5),np.uint8)
-        for i in range(len(DATA.threshed_images)):
-            erosion = cv.erode(DATA.threshed_images[i],kernel,iterations = 1)
-            dilation = cv.dilate(DATA.threshed_images[i],kernel,iterations = 1)
+        #kernel = np.ones((5,5),np.uint8)
+        #for i in range(len(DATA.threshed_images)):
+        #    erosion = cv.erode(DATA.threshed_images[i],kernel,iterations = 1)
+        #    dilation = cv.dilate(DATA.threshed_images[i],kernel,iterations = 1)
 
     def check_LED(self, x1, y1, x2, y2):
         #sprawdzenie, czy led są w bliskiej odległości

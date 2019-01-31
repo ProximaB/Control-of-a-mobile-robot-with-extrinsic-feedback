@@ -17,9 +17,9 @@ D.ARUCCO_ENUM = 2
 
 D.SIMULATION = True
 D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
-
+D.WARP_TOLERANCE = 50 # tolerancja na zmiane markerow, zmienijsza zakłoócenia,
 # Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
-D.TRACKER_TYPE = D.ARUCCO_ENUM # D.LED_ENUM
+D.TRACKER_TYPE = D.LED_ENUM #D.ARUCCO_ENUM # D.LED_ENUM
 
 if D.TRACKER_TYPE is D.LED_ENUM:
     # Robot settings 
@@ -31,19 +31,23 @@ if D.TRACKER_TYPE is D.LED_ENUM:
     # Simulator settings
     D.W_HEIGHT = 840#588#640
     D.W_WIDTH =  1480#1036#1280
+
+    D.SIDEPIXEL_ARUCO = 100#100
     
 elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
     # Robot settings 
     D.ROB_CNTR = (50, 25) # x, y
     D.HEADING = 0
-    D.DIAMETER = 15 #15#10 
-    D.AXLE_LEN = 10 #10 #7
+    D.DIAMETER = 10 #20#15#10 
+    D.AXLE_LEN = 7 #17#10 #7
     D.WHEEL_RADIUS = 2
     # Simulator settings
     D.W_HEIGHT = 840#588#640
     D.W_WIDTH =  1480#1036#1280
 
-    D.ARUCO_SIDE_PIXELS = 70
+    D.SIDEPIXEL_ARUCO = 100#100
+    D.ARUCO_SIDE_PIXELS = 40
+
 #############
 D.D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
 D.D_MARGIN_VERTICAL = (10, 10)
@@ -67,8 +71,6 @@ D.UPPER_RIGHT_ID = 2
 D.BOTTOM_RIGHT = 3
 D.BOTTOM_LEFT = 4
 D.CORNER_IDS = [D.UPPER_LEFT_ID, D.UPPER_RIGHT_ID, D.BOTTOM_RIGHT, D.BOTTOM_LEFT]
-D.SIDEPIXEL_ARUCO = 100#100
-D.SIDEPIXEL_ARUCO_ROBOT = 30
 D.MARGIN_ARUCO = 40 #30
 
 #Settings for PID controller
@@ -77,7 +79,7 @@ D.MARGIN_ARUCO = 40 #30
 
 
 D.PROPORTIONAL1 = 1.0 #proporcjonalny
-D.INTEGRAL1 = 1.0 #całka
+D.INTEGRAL1 = 1.3 #całka
 D.DERIVATIVE1 = 0.001 #pochodna
 
 D.PROPORTIONAL2 = 1.0

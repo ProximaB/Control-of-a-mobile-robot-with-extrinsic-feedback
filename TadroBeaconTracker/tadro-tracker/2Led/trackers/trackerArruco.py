@@ -21,6 +21,7 @@ class TrackArruco:
     def find_arruco(self, DATA, SETTINGS):
         image = DATA.processed_image
         gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        #gray = cv.bilateralFilter(gray, 4,4,4)
         aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
         parameters = aruco.DetectorParameters_create()
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
@@ -41,11 +42,12 @@ class TrackArruco:
 
         robot_ctour = self.find_arruco(DATA, SETTINGS)
         if robot_ctour is None:
+            cv.imshow('Tracing and Recognition.', DATA.base_image)
             return ROBOT
+        robot_ctour 
+        LT, RT, RB, LB = robot_ctour[0][0]
 
-        RB, LB, LT, RT = robot_ctour[0][0]
-
-        robot_center_img = self.midpoint(RB, LT)
+        robot_center_img = self.midpoint(LT, RB)
         
         hI, wI, _ = DATA.processed_image.shape
         imgMax = (hI, wI)
@@ -54,10 +56,10 @@ class TrackArruco:
         realMax = (hR, wR)
 
         target = map_point_to_img(DATA.target, imgMax, realMax)
-        DATA.robot_center = map_point_to_img(robot_center_img, imgMax, realMax)
+        DATA.robot_center = map_point_to_real(robot_center_img, imgMax, realMax)
 
         DATA.heading =  math.atan2(RB[0]-LT[0], RB[1]-LT[1]) + -np.pi
-        DATA.heading = -1 * math.atan2(math.sin(ROBOT.heading), math.cos(ROBOT.heading))
+        DATA.heading = -1 * math.atan2(math.sin(DATA.heading), math.cos(DATA.heading))
         DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, robot_ctour)
         # updatee the displays:
         cv.circle(DATA.base_image, target, 3, (255,0,0), 2, -1)

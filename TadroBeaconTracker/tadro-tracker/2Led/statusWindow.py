@@ -10,10 +10,10 @@ class statusWindow:
     def drawData(self, position, heading, error, heading_error, doWarping):
         x, y = position
         font = cv.FONT_HERSHEY_SIMPLEX
-        cv.putText(self.image, f'X:   {round(x, ndigits = 3)}', (1, 33), font, 1, (255,255,255), 2, cv.LINE_AA)
-        cv.putText(self.image, f'Y:   {round(y, ndigits = 3)}', (1, 66), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'X:   {round(x, ndigits = 3)} mm', (1, 33), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'Y:   {round(y, ndigits = 3)} mm', (1, 66), font, 1, (255,255,255), 2, cv.LINE_AA)
         cv.putText(self.image, 'Th:  {0}'.format(round(heading*180.0/np.pi, ndigits=3)), (1,99), font, 1, (255,255,255), 2, cv.LINE_AA)
-        cv.putText(self.image, f'E:   {round(error, ndigits = 3)}', (1,132), font, 1, (255,255,255), 2, cv.LINE_AA)
+        cv.putText(self.image, f'E:   {round(error, ndigits = 3)}mm', (1,132), font, 1, (255,255,255), 2, cv.LINE_AA)
         cv.putText(self.image, f'ThE: {round(heading_error*180.0/np.pi, ndigits=3)}', (1,165), font, 1, (255,255,255), 2, cv.LINE_AA)
         cv.putText(self.image, f'Do warp: {doWarping}', (1,195), font, 1, (255,255,255), 2, cv.LINE_AA)
 
