@@ -17,9 +17,9 @@ D.ARUCCO_ENUM = 2
 
 D.SIMULATION = True
 D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
-D.WARP_TOLERANCE = 50 # tolerancja na zmiane markerow, zmienijsza zakłoócenia,
+D.WARP_TOLERANCE = 2 # tolerancja na zmiane markerow, zmienijsza zakłoócenia,
 # Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
-D.TRACKER_TYPE = D.LED_ENUM #D.ARUCCO_ENUM # D.LED_ENUM
+D.TRACKER_TYPE = D.ARUCCO_ENUM #D.ARUCCO_ENUM # D.LED_ENUM
 
 if D.TRACKER_TYPE is D.LED_ENUM:
     # Robot settings 
@@ -38,15 +38,15 @@ elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
     # Robot settings 
     D.ROB_CNTR = (50, 25) # x, y
     D.HEADING = 0
-    D.DIAMETER = 10 #20#15#10 
-    D.AXLE_LEN = 7 #17#10 #7
+    D.DIAMETER = 20 #20#15#10 
+    D.AXLE_LEN = 14 #17#10 #7
     D.WHEEL_RADIUS = 2
     # Simulator settings
     D.W_HEIGHT = 840#588#640
     D.W_WIDTH =  1480#1036#1280
 
     D.SIDEPIXEL_ARUCO = 100#100
-    D.ARUCO_SIDE_PIXELS = 40
+    D.ARUCO_SIDE_PIXELS = 80
 
 #############
 D.D_MARGIN_HORIZONTAL = (150, 10) #(L,R)

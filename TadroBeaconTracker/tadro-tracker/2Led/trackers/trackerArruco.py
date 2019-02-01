@@ -58,7 +58,7 @@ class TrackArruco:
         target = map_point_to_img(DATA.target, imgMax, realMax)
         DATA.robot_center = map_point_to_real(robot_center_img, imgMax, realMax)
 
-        DATA.heading =  math.atan2(RB[0]-LT[0], RB[1]-LT[1]) + -np.pi
+        DATA.heading =  math.atan2(LT[0]-RB[0], LT[1]-RB[1]) - np.pi
         DATA.heading = -1 * math.atan2(math.sin(DATA.heading), math.cos(DATA.heading))
         DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, robot_ctour)
         # updatee the displays:

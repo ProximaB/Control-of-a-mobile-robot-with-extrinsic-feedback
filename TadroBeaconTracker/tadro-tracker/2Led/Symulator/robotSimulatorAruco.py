@@ -109,6 +109,8 @@ class robotSimulationEnvAruco:
             frame[mh: -mh, mw: -mw] = area_frame
             # shape_hw = frame.shape[1::-1]
             #cv.rectangle(frame, CFG.AREA_POINTS[0], add(shape_hw, CFG.AREA_POINTS[1]), 0, CFG.AREA_THICKNESS)
+        
+        return (robot_center, heading)
 
     def simulation_keys_KLIO(self):
         win_frame = np.ones((W_HEIGHT, W_WIDTH, 3), dtype='uint8')
@@ -168,13 +170,13 @@ class robotSimulationEnvAruco:
         print(f'L:{vel_0} R:{vel_1}')
         model.simulate_robot_process(-vel_0, -vel_1, time_diff)
 
-        self.draw_robot_position(display_frame)
+        robt_cntr, headin = self.draw_robot_position(display_frame)
         
         #wyświetlanie okna prezentującego symulacje i ważne parametry robota
         win_frame = np.ones((CFG.W_HEIGHT, CFG.W_WIDTH, 3), dtype='uint8') #czyszczenie win_frame
         # wypisywanie statusu
         sw = statusWindowText(win_frame)
-        sw.drawData(robot.robot_center, robot.heading, 0, 0)
+        sw.drawData(robt_cntr, headin, 0, 0)
         # nakładanie display_frame na win_frame
         win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
         #wyswitlanie podglądu symulacji w osobnym oknie
@@ -191,17 +193,21 @@ if __name__ == "__main__":
     class DATA:
         pass
     data = DATA()
-    data.target = (100,100)
+    data.target = (25,25)
     class cap:
         def read(self, x,y,z): return sim.simulate_return_image(x,y,z)
     
     capture = cap()
-    pic1 = sim.simulate_return_image(0,0,1)
+    for i in range(1000):
+        pic1 = sim.simulate_return_image(1,2,0.1)
+        cv.imshow('prev', pic1)
+        cv.waitKey(1)
+
     pic2 = sim.simulate_return_image(2,-2,2)
     pic3 = sim.simulate_return_image(3,4,2)
 
     ctrRobot = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
-    data.base_image = sim.simulate_return_image(3,4,2)
+    data.base_image = sim.simulate_return_image(-4,4,2)
     tracker = TrackArruco(data)
     ROBOT = tracker.detectAndTrack(None, data, ctrRobot)
     print(f'XY: {ctrRobot.robot_center}, HEADING: {ctrRobot.heading}')

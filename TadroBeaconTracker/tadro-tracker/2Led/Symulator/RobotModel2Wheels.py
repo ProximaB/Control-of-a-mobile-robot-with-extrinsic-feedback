@@ -59,7 +59,7 @@ class RobotModel2Wheels:
         #distance = vel * time_diff
         
         # theta
-        heading += wheel_radius/axle_len/2 * (Vr - Vl) * time_diff
+        heading += wheel_radius/axle_len * (Vr - Vl) * time_diff
         heading = math.atan2(sin(heading), cos(heading)) #0 - Pi dla kąta w lewo i -Pi, 0 
         #heading = heading % (2*np.pi)
         self.robot.heading = heading

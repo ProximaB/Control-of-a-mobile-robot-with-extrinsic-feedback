@@ -76,6 +76,8 @@ class robotSimulationEnv2Led:
         mh = m+h
         mw = m+w
         frame[mw: -mw, mh: -mh] = area_frame
+
+        return (robot_center, heading)
         # shape_hw = frame.shape[1::-1]
         #cv.rectangle(frame, CFG.AREA_POINTS[0], add(shape_hw, CFG.AREA_POINTS[1]), 0, CFG.AREA_THICKNESS)
 
@@ -106,13 +108,13 @@ class robotSimulationEnv2Led:
             model.simulate_robot_process(L, R, 1.0)
             robot.calculate_led_pos()
 
-            self.draw_robot_position(display_frame)
+            rb_cntr, heading = self.draw_robot_position(display_frame)
             #wyświetlanie okna prezentującego symulacje i ważne parametry robota
             win_frame = np.ones((CFG.W_HEIGHT, CFG.W_WIDTH, 3), dtype='uint8') #czyszczenie win_frame
             win_frame[CFG.D_MARGIN_VERTICAL[0] : - CFG.D_MARGIN_VERTICAL[1], CFG.D_MARGIN_HORIZONTAL[0] : - CFG.D_MARGIN_HORIZONTAL[1], ] = display_frame
             # wypisywanie statusu
             sw = statusWindowText(win_frame)
-            sw.drawData(robot.robot_center, robot.heading, 0, 0)
+            sw.drawData(rb_cntr, heading, 0, 0)
             #wyswietlenie na oknie
             cv.imshow('result', win_frame)
         # nakładanie display_frame na win_frame
