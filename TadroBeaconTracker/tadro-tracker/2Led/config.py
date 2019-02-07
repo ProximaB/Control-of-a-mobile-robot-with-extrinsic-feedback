@@ -17,9 +17,9 @@ D.ARUCCO_ENUM = 2
 
 D.SIMULATION = True
 D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
-D.WARP_TOLERANCE = 2 # tolerancja na zmiane markerow, zmienijsza zakłoócenia,
+D.WARP_TOLERANCE = 20#2 # tolerancja na zmiane markerow, zmienijsza zakłoócenia,
 # Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
-D.TRACKER_TYPE = D.ARUCCO_ENUM #D.ARUCCO_ENUM # D.LED_ENUM
+D.TRACKER_TYPE = D.LED_ENUM #D.ARUCCO_ENUM # D.LED_ENUM
 
 if D.TRACKER_TYPE is D.LED_ENUM:
     # Robot settings 
@@ -33,6 +33,8 @@ if D.TRACKER_TYPE is D.LED_ENUM:
     D.W_WIDTH =  1480#1036#1280
 
     D.SIDEPIXEL_ARUCO = 100#100
+
+    D.SIM_ERROR =  0.1*D.W_WIDTH/D.AREA_WIDTH_REAL
     
 elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
     # Robot settings 
@@ -47,6 +49,8 @@ elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
 
     D.SIDEPIXEL_ARUCO = 100#100
     D.ARUCO_SIDE_PIXELS = 80
+
+    D.SIM_ERROR = 3
 
 #############
 D.D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
@@ -87,7 +91,7 @@ D.INTEGRAL2 = 1.4
 D.DERIVATIVE2  = 0.001
 
 D.VEL = 500
-D.SIM_ERROR = 3
+
  
 #Choose leds order, when LEFT_LD = 0 that refer to led on the side wihich robot is turing going forward-left 
 D.LEFT_LD = 0

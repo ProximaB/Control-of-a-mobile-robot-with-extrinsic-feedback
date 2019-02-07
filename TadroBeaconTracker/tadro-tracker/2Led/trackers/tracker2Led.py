@@ -135,18 +135,21 @@ class Track2Led:
 
             DATA.threshed_images[i] = np.eye(*shape)
 
-            DATA.red_threshed_image = cv.inRange(
-                DATA.red_image, SETTINGS.thresholds[i]["low_red"], SETTINGS.thresholds[i]["high_red"], DATA.red_threshed_image)
-            DATA.blue_threshed_image = cv.inRange(
-                DATA.blue_image, SETTINGS.thresholds[i]["low_blue"], SETTINGS.thresholds[i]["high_blue"], DATA.blue_threshed_image)
-            DATA.green_threshed_image = cv.inRange(
-                DATA.green_image, SETTINGS.thresholds[i]["low_green"], SETTINGS.thresholds[i]["high_green"], DATA.green_threshed_image)
-            DATA.hue_threshed_image = cv.inRange(
-                DATA.hue_image, SETTINGS.thresholds[i]["low_hue"], SETTINGS.thresholds[i]["high_hue"], DATA.hue_threshed_image)
-            DATA.sat_threshed_image = cv.inRange(
-                DATA.sat_image, SETTINGS.thresholds[i]["low_sat"], SETTINGS.thresholds[i]["high_sat"], DATA.sat_threshed_image)
-            DATA.val_threshed_image = cv.inRange(
-                DATA.val_image, SETTINGS.thresholds[i]["low_val"], SETTINGS.thresholds[i]["high_val"], DATA.val_threshed_image)
+            try:
+                DATA.red_threshed_image = cv.inRange(
+                    DATA.red_image, SETTINGS.thresholds[i]["low_red"], SETTINGS.thresholds[i]["high_red"], DATA.red_threshed_image)
+                DATA.blue_threshed_image = cv.inRange(
+                    DATA.blue_image, SETTINGS.thresholds[i]["low_blue"], SETTINGS.thresholds[i]["high_blue"], DATA.blue_threshed_image)
+                DATA.green_threshed_image = cv.inRange(
+                    DATA.green_image, SETTINGS.thresholds[i]["low_green"], SETTINGS.thresholds[i]["high_green"], DATA.green_threshed_image)
+                DATA.hue_threshed_image = cv.inRange(
+                    DATA.hue_image, SETTINGS.thresholds[i]["low_hue"], SETTINGS.thresholds[i]["high_hue"], DATA.hue_threshed_image)
+                DATA.sat_threshed_image = cv.inRange(
+                    DATA.sat_image, SETTINGS.thresholds[i]["low_sat"], SETTINGS.thresholds[i]["high_sat"], DATA.sat_threshed_image)
+                DATA.val_threshed_image = cv.inRange(
+                    DATA.val_image, SETTINGS.thresholds[i]["low_val"], SETTINGS.thresholds[i]["high_val"], DATA.val_threshed_image)
+            except:
+                pass
 
             #mnożenie do wynikowego threshold_iamges
             DATA.threshed_images[i] = cv.multiply(
@@ -316,7 +319,7 @@ class Track2Led:
         target = (xI, yI)
 
         cv.circle(DATA.base_image, target, 3, (255,0,0), 2, -1)
-        cv.imshow('Tracing and Recognition.', DATA.base_image)
+        cv.imshow('Tracking and recognition', DATA.base_image)
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])

@@ -42,7 +42,7 @@ class TrackArruco:
 
         robot_ctour = self.find_arruco(DATA, SETTINGS)
         if robot_ctour is None:
-            cv.imshow('Tracing and Recognition.', DATA.base_image)
+            cv.imshow('Tracking and recognition', DATA.base_image)
             return ROBOT
         robot_ctour 
         LT, RT, RB, LB = robot_ctour[0][0]
@@ -63,7 +63,7 @@ class TrackArruco:
         DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, robot_ctour)
         # updatee the displays:
         cv.circle(DATA.base_image, target, 3, (255,0,0), 2, -1)
-        cv.imshow('Tracing and Recognition.', DATA.base_image)
+        cv.imshow('Tracking and recognition', DATA.base_image)
         
         if (DATA.robot_center and DATA.heading) != ('' or None):
             return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.heading)
