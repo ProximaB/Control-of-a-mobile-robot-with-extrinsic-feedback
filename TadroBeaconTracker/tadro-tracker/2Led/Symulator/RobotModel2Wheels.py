@@ -1,4 +1,4 @@
-from math import sin, cos
+from math import sin, cos, tan
 import numpy as np
 import math
 import sys
@@ -9,7 +9,43 @@ from logger import *
 def round_tuple(a):
     #return tuple(map(math.ceil, a))
     return tuple(map(round, a))
+class RobotBicycleModel:
+    def __init__(self, robot : Robot, round_pos = 10):
+        self.robot = robot
+        self.round_pos = round_pos
+    
+    def simulate_robot(self, Vel, theta, time_diff):
+        x_pos, y_pos = self.robot.robot_center
+        heading = self.robot.heading
+        axle_len = self.robot.axle_len
+        wheel_radius = self.robot.wheel_radius  
+        
+        # theta
+        heading += Vel / axle_len * tan(theta) * time_diff
+        #heading = math.atan2(sin(heading), cos(heading)) #0 - Pi dla kąta w lewo i -Pi, 0 
 
+        self.robot.heading = heading
+        log_print(f'heading:{heading}')
+        log_print(f'self.robot.robot_center:{self.robot.robot_center}')
+
+        x_pos += Vel * cos(heading) * time_diff # mnoze przez czas, bo calka z predkosci po czasie daje droge
+        x_pos += Vel * sin(heading) * time_diff 
+        self.robot.robot_center = (x_pos, y_pos)
+
+
+    def round_robot_properties(self):
+        x_pos, y_pos = self.robot.robot_center
+        heading = self.robot.heading
+
+        x_pos = round(x_pos, self.round_pos) 
+        y_pos = round(y_pos, self.round_pos)
+        self.robot.robot_center = (x_pos, y_pos)
+
+        heading = np.round(heading, self.round_pos)
+        self.robot.heading = heading
+
+    def simulate_robot_process(self, vel_0, vel_1, time_diff):
+        self.simulate_robot(vel_0, vel_1, time_diff)
 class RobotModel2Wheels:
     def __init__(self, robot : Robot, round_pos = 10):
         self.robot = robot

@@ -26,7 +26,7 @@ if D.TRACKER_TYPE is D.LED_ENUM:
     D.ROB_CNTR = (50, 25) # x, y
     D.HEADING = 0
     D.DIAMETER = 10 #15#10 
-    D.AXLE_LEN = 7 #10 #7
+    D.AXLE_LEN = 4 #10 #7
     D.WHEEL_RADIUS = 2
     # Simulator settings
     D.W_HEIGHT = 840#588#640
