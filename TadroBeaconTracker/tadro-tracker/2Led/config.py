@@ -21,16 +21,20 @@ D.WARP_TOLERANCE = 20#2 # tolerancja na zmiane markerow, zmienijsza zakłoóceni
 # Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
 D.TRACKER_TYPE = D.LED_ENUM #D.ARUCCO_ENUM # D.LED_ENUM
 
+D.THETA = 0
+D.LENGTH = 5 #mm
+
 if D.TRACKER_TYPE is D.LED_ENUM:
     # Robot settings 
     D.ROB_CNTR = (50, 25) # x, y
     D.HEADING = 0
     D.DIAMETER = 10 #15#10 
-    D.AXLE_LEN = 4 #10 #7
+    D.AXLE_LEN = 7 #10 #7
     D.WHEEL_RADIUS = 2
     # Simulator settings
     D.W_HEIGHT = 840#588#640
     D.W_WIDTH =  1480#1036#1280
+    D.LED_RADIUS = 12#15#7#8 #px
 
     D.SIDEPIXEL_ARUCO = 100#100
 
@@ -46,7 +50,7 @@ elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
     # Simulator settings
     D.W_HEIGHT = 840#588#640
     D.W_WIDTH =  1480#1036#1280
-
+    D.LED_RADIUS = 12#15#7#8 #px
     D.SIDEPIXEL_ARUCO = 100#100
     D.ARUCO_SIDE_PIXELS = 80
 
@@ -60,7 +64,7 @@ D.FONT = cv.FONT_HERSHEY_SIMPLEX
 D.D_WIDTH = D.W_WIDTH - D.D_MARGIN_HORIZONTAL[0] - D.D_MARGIN_HORIZONTAL[1] #Wielkosc symulacji, potrzebne do policzenia skali 
 D.D_HEIGHT = D.W_HEIGHT - D.D_MARGIN_VERTICAL[0] - D.D_MARGIN_VERTICAL[1]   # w odniesieniu do wielkosci wykrytego oknaprzez kamere
 
-D.LED_RADIUS = 12#15#7#8 #px
+
 D.LED_THICKNES = -1#8 
 D.ROBOT_THICKNESS = 3
 
@@ -81,16 +85,16 @@ D.MARGIN_ARUCO = 40 #30
 #angular controll
 
 
-
-D.PROPORTIONAL1 = 1.0 #proporcjonalny
-D.INTEGRAL1 = 1.3 #całka
+# ehading
+D.PROPORTIONAL1 = 3.0 #proporcjonalny
+D.INTEGRAL1 = 1.2 #całka
 D.DERIVATIVE1 = 0.001 #pochodna
 
 D.PROPORTIONAL2 = 1.0
-D.INTEGRAL2 = 1.4
+D.INTEGRAL2 = 1.0
 D.DERIVATIVE2  = 0.001
 
-D.VEL = 500
+D.VEL = 300
 
  
 #Choose leds order, when LEFT_LD = 0 that refer to led on the side wihich robot is turing going forward-left 

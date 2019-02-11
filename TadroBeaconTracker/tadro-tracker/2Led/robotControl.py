@@ -27,7 +27,7 @@ from tracker2Led import Track2Led
 
 from trackerArruco import TrackArruco
 # import Robot class
-from robot import Robot, Robot2Led, RobotAruco
+from robot import Robot, Robot2Led, RobotAruco, Robot2LedBicycle
 # custom simpl logger
 from logger import *
 # import utils
@@ -40,12 +40,14 @@ from PID import PID as pid
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
 
 # sim envs
-from robotSimulator2Led import robotSimulationEnv2Led
+from robotSimulator2Led import robotSimulationEnv2Led, robotSimulationEnv2LedBicycle
 
 from robotSimulatorAruco import robotSimulationEnvAruco
 
 # models
 from RobotModel2Wheels import RobotModel2Wheels, RobotBicycleModel
+
+from BicyclePCtrl import BicyclePCtrl, DiffCtrl
 
 class Settings(object):
     pass
@@ -396,13 +398,19 @@ def main_default():
     if CFG.SIMULATION:#diamater=10, axle_len=10, wheel_radius=5
         
         if CFG.TRACKER_TYPE is CFG.LED_ENUM:
+            #ROBOT = Robot2LedBicycle(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.THETA, CFG.LENGTH, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             ROBOT = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             ROBOT.calculate_led_pos()
 
+            #simRobot = Robot2LedBicycle(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.THETA, CFG.LENGTH, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             simRobot = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             simRobot.calculate_led_pos()
-            model = RobotBicycleModel(simRobot) #zmiania modelu na rowerowy
+
+            #model = RobotBicycleModel(simRobot) #zmiania modelu na rowerowy
+            model = RobotModel2Wheels(simRobot)
             sim = robotSimulationEnv2Led(model)
+            #sim = robotSimulationEnv2LedBicycle(model)
+            #robotSimulationEnv2Led
 
             log_info('Inicjalizacja sliderow do thresholdingu.')
             trackerBootstrap.setup_thresholds_sliders()
@@ -449,7 +457,7 @@ def main_default():
     PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1) # feedbacck od heading
     PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
     
-    bicycleCtrl = BicyclePCtrl(PID1)
+    controler = DiffCtrl(PID1,PID2, ROBOT) #BicyclePCtrl(PID1, PID2, ROBOT)
 
     PID1.SetPoint = 0
     PID1.setSampleTime(0.02)
@@ -467,8 +475,10 @@ def main_default():
 
     wasDrawn = True
     Vel = CFG.VEL
-    heading_error = 0
     done_heading = False
+
+    error = 0.0
+    heading_error = 0.0
 
     while(True):
         if CFG.SIMULATION:
@@ -495,12 +505,12 @@ def main_default():
                 continue
 
         #cv.waitKey(100)
-        """ MOST IMPORTAND! :D """
-        VelCtrl, TheataCtrl = bicycleCtrl.getControl(PID1, PID2, ROBOT)
+        #vel_1, vel_2 = controler.getControl(PID1.output, PID2.output, DATA, ROBOT)
+        #VelCtrl, TheataCtrl = bicycleCtrl.getControl(heading_error, error)
 
-        """ h, w = DATA.base_image.shape[:2]
+        h, w = DATA.base_image.shape[:2]
         p = math.sqrt(h**2 + w**2)
-        outTheta = PID1.output
+        outTheta = -PID1.output
         outVel = float(PID2.output/p * Vel)
         outVel = outVel if outVel < Vel else Vel
         
@@ -510,10 +520,10 @@ def main_default():
         x, y = ROBOT.robot_center
 
         if(y0 < y < y1 and x0 < x < x1 or done_heading):
-            vel_1 = outVel * cos(-outTheta)
-            vel_2 = outVel * sin(-outTheta)
-            #vel_1 = -(2*outVel - outTheta * CFG.AXLE_LEN )/ 2*CFG.WHEEL_RADIUS
-            #vel_2 = -(2*outVel + outTheta * CFG.AXLE_LEN )/ 2*CFG.WHEEL_RADIUS
+            #vel_1 = outVel * cos(-outTheta)
+            #vel_2 = outVel * sin(-outTheta)
+            vel_1 = -(2*outVel) - (outTheta * CFG.AXLE_LEN )/ 2*CFG.WHEEL_RADIUS
+            vel_2 = -(2*outVel) + (outTheta * CFG.AXLE_LEN )/ 2*CFG.WHEEL_RADIUS
             if((y0< y < y1 and x0< x < x1)):
                 done_heading = False
         else:
@@ -523,15 +533,15 @@ def main_default():
             if abs(heading_error) > 20*np.pi/180:
                 #vel_1 = outVel*0.5; vel_2 = outVel*0.5
                 vel_1 = outVel*0.5; vel_2 = -outVel*0.5
-                done_heading = True               """
+                done_heading = True
         
         # log_print(f'Vl: {vel_1}, Vr: {vel_2}')
         if CFG.SIMULATION:
             if CFG.CAMERA_FEEDBACK:
-                    sim.simulate_return_image(VelCtrl, TheataCtrl, 0.01)
+                    sim.simulate_return_image(vel_1, vel_2, 0.01)
                     grabbed, frame = capture.read()
             else:
-                frame = sim.simulate_return_image(VelCtrl, TheataCtrl, 0.01)
+                frame = sim.simulate_return_image(vel_1, vel_2, 0.01)
        
         if DATA.doWarpImage is True: 
             DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, DATA.M = warp_iamge_aruco(frame, DATA)
@@ -552,11 +562,15 @@ def main_default():
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
+        #if heading_error > 2*np.pi:
+        #    heading_error = -(heading_error-np.pi)
+        #if heading_error < -2*np.pi:
+        #    heading_error = -(heading_error+np.pi)    
         if (error < CFG.SIM_ERROR): Vel = 0.0; done_heading = False
         #elif (heading_error > 0.2) : Vel = 2.0
         else: Vel = CFG.VEL
-        log_print(f'error:{error}')
-        log_print(f'heading_error:{heading_error}')
+        log_print(f'error: {error}')
+        log_print(f'heading_error: {heading_error}')
         #else: V = 5.1  
         PID1.update(heading_error)
         PID2.update(error)
@@ -653,6 +667,9 @@ def main_default():
             log_info("doWarp-changed")
         elif k == ord('q'):
             break
+        elif k == ord('r'):
+            simRobot.robot_center = (50,25)
+            simRobot.calculate_led_pos()
     
     #path_img = generate_path_image(DATA)
     #zapis path image na dysk
