@@ -263,7 +263,7 @@ def draw_plot(feedback_list, setpoint_list, time_list, id, title, xlabel = 'time
     # Using make_interp_spline to create BSpline
     helper_x3 = make_interp_spline(time_list, feedback_list)
     feedback_smooth = helper_x3(time_smooth)
-
+ 
     L = len(time_list)
     f = plt.figure(id)
     plt.plot(time_smooth, feedback_smooth)
@@ -278,6 +278,22 @@ def draw_plot(feedback_list, setpoint_list, time_list, id, title, xlabel = 'time
 
     plt.grid(True)
     return f
+
+def draw_path(x_pos, y_pos, id, title, xlabel = 'time (s)', ylabel='PID (PV)'):
+    fig = plt.figure(id)
+    ax = fig.add_subplot(111)
+    ax.set_xlim(-5, 105)
+    ax.set_ylim(55, -5)
+  
+    plt.semilogy(y_pos, x_pos)
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+
+    plt.grid(True)
+    plt.show()
+    return fig
 
 def warp_iamge_aruco(image, DATA):
     orig = image.copy()
@@ -472,6 +488,7 @@ def main_default():
     feedback_list = [[], []]
     time_list =  [[], []]
     setpoint_list =  [[],[]]
+    position_list = [[],[]]
 
     wasDrawn = True
     Vel = CFG.VEL
@@ -522,8 +539,8 @@ def main_default():
         if(y0 < y < y1 and x0 < x < x1 or done_heading):
             #vel_1 = outVel * cos(-outTheta)
             #vel_2 = outVel * sin(-outTheta)
-            vel_1 = -(2*outVel) - (outTheta * CFG.AXLE_LEN )/ 2*CFG.WHEEL_RADIUS
-            vel_2 = -(2*outVel) + (outTheta * CFG.AXLE_LEN )/ 2*CFG.WHEEL_RADIUS
+            vel_1 = (-(2*outVel) - (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
+            vel_2 = (-(2*outVel) + (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
             if((y0< y < y1 and x0< x < x1)):
                 done_heading = False
         else:
@@ -580,7 +597,7 @@ def main_default():
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
         sw = statusWindow('Status')
         if (error > CFG.SIM_ERROR):
-
+            
             feedback_list[0].append(heading_error)
             feedback_list[1].append(error)
 
@@ -590,6 +607,9 @@ def main_default():
             time_list[0].append(PID1.current_time)
             time_list[1].append(PID2.current_time)
 
+            y, x = ROBOT.robot_center
+            position_list[0].append(x)
+            position_list[1].append(y)
             
             
             if CFG.SHOW_PATH is True:
@@ -602,14 +622,17 @@ def main_default():
             try:
                 p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 1, 'Orientacja robota względem celu', 'time [s]', 'heading [rad]')
                 p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 2, 'Odleglość robota do celu', 'time [s]', 'distance [mm]')
+                p3 = draw_path(position_list[0], position_list[1], 3, 'Trasa robota', 'x [mm]', 'y [mm]')
             except: pass
             #free arrays
             p1.show()
             p2.show()
+            p3.show()
 
             feedback_list = [[],[]]
             setpoint_list = [[], []]
             time_list = [[], []]
+            position_list = [[],[]]
 
             DATA.robot_data = []
 

@@ -111,7 +111,7 @@ class RobotModel2Wheels:
         log_print(f'heading:{heading}')
         log_print(f'self.robot.robot_center:{self.robot.robot_center}')
 
-        x_pos += wheel_radius/2 * (Vr + Vl) * cos(heading) * time_diff # mnoze przez czas, bo calka z predkosci po czasie daje droge
+        x_pos += wheel_radius/2 * (Vr + Vl) * cos(heading) * time_diff
         y_pos += wheel_radius/2 * (Vr + Vl) * sin(heading) * time_diff
         self.robot.robot_center = (x_pos, y_pos)
 

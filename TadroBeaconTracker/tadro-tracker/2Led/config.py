@@ -86,8 +86,8 @@ D.MARGIN_ARUCO = 40 #30
 
 
 # ehading
-D.PROPORTIONAL1 = 3.0 #proporcjonalny
-D.INTEGRAL1 = 1.2 #całka
+D.PROPORTIONAL1 = 2.0 #proporcjonalny
+D.INTEGRAL1 = 0.2 #całka
 D.DERIVATIVE1 = 0.001 #pochodna
 
 D.PROPORTIONAL2 = 1.0
