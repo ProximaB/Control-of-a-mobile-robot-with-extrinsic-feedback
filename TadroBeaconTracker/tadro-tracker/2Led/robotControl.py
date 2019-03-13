@@ -539,6 +539,9 @@ def main_default():
         if(y0 < y < y1 and x0 < x < x1 or done_heading):
             #vel_1 = outVel * cos(-outTheta)
             #vel_2 = outVel * sin(-outTheta)
+            ''' Tutaj wyliczane są predkość kątowe dla każdego z kół robota. 
+                Feedback od odlegosci i headingu, działający na kolejno prekość forward i prędkość rotational
+            '''
             vel_1 = (-(2*outVel) - (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
             vel_2 = (-(2*outVel) + (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
             if((y0< y < y1 and x0< x < x1)):
