@@ -531,7 +531,7 @@ def main_default():
         outVel = float(PID2.output/p * Vel)
         outVel = outVel if outVel < Vel else Vel
         
-        available_area_rect = [(ROBOT.diamater, ROBOT.diamater//2), (CFG.AREA_WIDTH_REAL - ROBOT.diamater, CFG.AREA_HEIGHT_REAL - ROBOT.diamater//2)]
+        available_area_rect = [(ROBOT.diamater, ROBOT.diamater), (CFG.AREA_WIDTH_REAL - ROBOT.diamater, CFG.AREA_HEIGHT_REAL - ROBOT.diamater)]
         x0,y0 = available_area_rect[0]
         x1, y1 = available_area_rect[1]
         x, y = ROBOT.robot_center
@@ -544,16 +544,18 @@ def main_default():
             '''
             vel_1 = (-(2*outVel) - (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
             vel_2 = (-(2*outVel) + (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
-            if((y0< y < y1 and x0< x < x1)):
-                done_heading = False
+            #if((y0< y < y1 and x0< x < x1)):
+            done_heading = False
+
         else:
             #vel_1 = outVel*0.5; vel_2 = -outVel*0.5
             vel_1 = 0; vel_2=0
             #wasDrawn = False
-            if abs(heading_error) > 20*np.pi/180:
-                #vel_1 = outVel*0.5; vel_2 = outVel*0.5
+            if heading_error > 20*np.pi/180:
                 vel_1 = outVel*0.5; vel_2 = -outVel*0.5
-                done_heading = True
+            elif heading_error > -20*np.pi/180:
+                vel_1 = -outVel*0.5; vel_2 =  outVel*0.5
+            else: done_heading = True
         
         # log_print(f'Vl: {vel_1}, Vr: {vel_2}')
         if CFG.SIMULATION:
@@ -568,7 +570,7 @@ def main_default():
         else: 
             DATA.base_image = cv.warpPerspective(frame, DATA.M, (DATA.area_width_captured, DATA.area_height_captured))
          #DATA.base_image = frame
-        """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
+        """################## Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
         #zaimplementowana wyżej
 
@@ -625,12 +627,12 @@ def main_default():
             try:
                 p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 1, 'Orientacja robota względem celu', 'time [s]', 'heading [rad]')
                 p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 2, 'Odleglość robota do celu', 'time [s]', 'distance [mm]')
-                p3 = draw_path(position_list[0], position_list[1], 3, 'Trasa robota', 'x [mm]', 'y [mm]')
+                #p3 = draw_path(position_list[0], position_list[1], 3, 'Trasa robota', 'x [mm]', 'y [mm]')
             except: pass
             #free arrays
             p1.show()
             p2.show()
-            p3.show()
+            #p3.show()
 
             feedback_list = [[],[]]
             setpoint_list = [[], []]
