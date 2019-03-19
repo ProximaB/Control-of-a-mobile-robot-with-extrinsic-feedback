@@ -524,18 +524,21 @@ def main_default():
         #cv.waitKey(100)
         #vel_1, vel_2 = controler.getControl(PID1.output, PID2.output, DATA, ROBOT)
         #VelCtrl, TheataCtrl = bicycleCtrl.getControl(heading_error, error)
-
+        """################## Zmienne wykorzystywane na potrzeby sterowania ###############"""
         h, w = DATA.base_image.shape[:2]
         p = math.sqrt(h**2 + w**2)
         outTheta = -PID1.output
         outVel = float(PID2.output/p * Vel)
         outVel = outVel if outVel < Vel else Vel
         
-        available_area_rect = [(ROBOT.diamater, ROBOT.diamater), (CFG.AREA_WIDTH_REAL - ROBOT.diamater, CFG.AREA_HEIGHT_REAL - ROBOT.diamater)]
+        dist_area = ROBOT.diamater/2+1
+        available_area_rect = [(dist_area, dist_area), (CFG.AREA_WIDTH_REAL - dist_area, CFG.AREA_HEIGHT_REAL - dist_area)]
         x0,y0 = available_area_rect[0]
         x1, y1 = available_area_rect[1]
         x, y = ROBOT.robot_center
+        xT, yT = DATA.target
 
+        """################## Wyliczanie prędkości kół ###############"""
         if(y0 < y < y1 and x0 < x < x1 or done_heading):
             #vel_1 = outVel * cos(-outTheta)
             #vel_2 = outVel * sin(-outTheta)
@@ -550,13 +553,15 @@ def main_default():
         else:
             #vel_1 = outVel*0.5; vel_2 = -outVel*0.5
             vel_1 = 0; vel_2=0
-            #wasDrawn = False
-            if heading_error > 20*np.pi/180:
-                vel_1 = outVel*0.5; vel_2 = -outVel*0.5
-            elif heading_error > -20*np.pi/180:
-                vel_1 = -outVel*0.5; vel_2 =  outVel*0.5
-            else: done_heading = True
+            if y0 < yT < y1 and x0 < xT < x1: #ograniczenie, robot podejmie próbe nakierunkowania na cel tlyko gdy cel będzie w dozwolonej strefie ruchu
+                #wasDrawn = False
+                if heading_error > 20*np.pi/180:
+                    vel_1 = outVel*0.5; vel_2 = -outVel*0.5
+                elif heading_error < -20*np.pi/180:
+                    vel_1 = -outVel*0.5; vel_2 =  outVel*0.5
+                else: done_heading = True
         
+        """################## Symulowanie stanowiska roboczego ###############"""
         # log_print(f'Vl: {vel_1}, Vr: {vel_2}')
         if CFG.SIMULATION:
             if CFG.CAMERA_FEEDBACK:
