@@ -8,6 +8,9 @@ class Data:
 D = Data()
 
 ######################## SET D CONSTANTS CONFIG OBJECT ######################## 
+#Podwyższenie jasności obrazu
+D.BRIGHTNESS = 50
+D.DIST = 2
 # Real Robot area settings
 D.AREA_HEIGHT_REAL = 50 #[mm] 12.8 razy mniejsze niz pix 12.8mm/px
 D.AREA_WIDTH_REAL = 100 #[mm]
@@ -38,7 +41,7 @@ if D.TRACKER_TYPE is D.LED_ENUM:
 
     D.SIDEPIXEL_ARUCO = 100#100
 
-    D.SIM_ERROR =  0.1*D.W_WIDTH/D.AREA_WIDTH_REAL
+    D.SIM_ERROR =  0.15*D.W_WIDTH/D.AREA_WIDTH_REAL
     
 elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
     # Robot settings 
@@ -94,7 +97,7 @@ D.PROPORTIONAL2 = 1.0
 D.INTEGRAL2 = 1.0
 D.DERIVATIVE2  = 0.001
 
-D.VEL = 300
+D.VEL = 200
 
  
 #Choose leds order, when LEFT_LD = 0 that refer to led on the side wihich robot is turing going forward-left 

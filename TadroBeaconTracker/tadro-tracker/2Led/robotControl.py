@@ -45,7 +45,7 @@ from robotSimulator2Led import robotSimulationEnv2Led, robotSimulationEnv2LedBic
 from robotSimulatorAruco import robotSimulationEnvAruco
 
 # models
-from RobotModel2Wheels import RobotModel2Wheels, RobotBicycleModel
+from RobotModel2Wheels import RobotModel2Wheels#, RobotBicycleModel
 
 from BicyclePCtrl import BicyclePCtrl, DiffCtrl
 
@@ -83,6 +83,7 @@ class TrackerBootstrap:
 
         #cv.createTrackbar('Slider_heading', 'Tracing and Recognition.', DATA.targetHeading, 360, self.change_heading,)
         cv.createTrackbar('0 : OFF \n1 : ON','Tracking and recognition',0,1, self.switch)
+        cv.createTrackbar('0 Brightennes 255', 'Tracking and recognition', 0, 255, self.change_brighteness)
         
         for i in range(len(SETTINGS.thresholds)):
             cv.namedWindow(f'Threshold_{i}')
@@ -139,7 +140,7 @@ class TrackerBootstrap:
                 if 0 < (g) < 255:
                     if 0< (r) < 255:
                         thre = self.SETTINGS.thresholds[0]
-                        d = 25
+                        d = 45
                         thre['low_red'] = int((r - d) %255)
                         thre['high_red'] = int((r + d) %255)
                         thre['low_green'] = int((g - d) %255)
@@ -192,6 +193,10 @@ class TrackerBootstrap:
     def switch(self, onOff):
         self.SETTINGS.START = onOff
         log_print(f'Settings.START: {onOff}')
+    
+    def change_brighteness(self, val):
+        self.SETTINGS.BRIGHTNESS = val
+        log_print(f'Settings.Brightennes: {val}')
     ####################### UTILITY ClASS / FUNCTIONS ##########################
 
     def play_in_loop(self, capture, frame_counter):
@@ -381,6 +386,7 @@ def main_default():
     SETTINGS = Settings()
     SETTINGS.thresholds = [{}, {}]
     SETTINGS.START = 0
+    SETTINGS.BRIGHTNESS = CFG.BRIGHTNESS
 
     DATA = Data()
     DATA.robot_data = []
@@ -509,6 +515,12 @@ def main_default():
                 if DATA.doWarpImage is True: DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, M = warp_iamge_aruco(frame, DATA)
                 else: DATA.base_image = cv.warpPerspective(frame, M, (DATA.area_width_captured, DATA.area_height_captured))
                 #DATA.base_image = frame
+                """
+                Podwyższenie jasności
+                """
+                hsv = cv.cvtColor(DATA.base_image, cv.COLOR_BGR2HSV)
+                hsv[:,:,2] += SETTINGS.BRIGHTNESS
+                DATA.base_image = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
 
                 tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
                 if cv.waitKey(1) & 0xFF == ord('q'):
@@ -531,7 +543,7 @@ def main_default():
         outVel = float(PID2.output/p * Vel)
         outVel = outVel if outVel < Vel else Vel
         
-        dist_area = ROBOT.diamater/2+1
+        dist_area = ROBOT.diamater/2+CFG.DIST
         available_area_rect = [(dist_area, dist_area), (CFG.AREA_WIDTH_REAL - dist_area, CFG.AREA_HEIGHT_REAL - dist_area)]
         x0,y0 = available_area_rect[0]
         x1, y1 = available_area_rect[1]
@@ -539,12 +551,17 @@ def main_default():
         xT, yT = DATA.target
 
         """################## Wyliczanie prędkości kół ###############"""
+
         if(y0 < y < y1 and x0 < x < x1 or done_heading):
             #vel_1 = outVel * cos(-outTheta)
             #vel_2 = outVel * sin(-outTheta)
             ''' Tutaj wyliczane są predkość kątowe dla każdego z kół robota. 
                 Feedback od odlegosci i headingu, działający na kolejno prekość forward i prędkość rotational
             '''
+            """ Następujące równania, zostały wyznaczone w pracy, zapewniają one odpowiednie sterowanie, pozwalające dotrzeć do celu w zależności
+            od odchylenia i odelgłości do celu.
+                outTheta wpływa na keirunek jazdy, outVel na wielkość prędkośći. 
+            """
             vel_1 = (-(2*outVel) - (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
             vel_2 = (-(2*outVel) + (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
             #if((y0< y < y1 and x0< x < x1)):
@@ -580,15 +597,25 @@ def main_default():
         #zaimplementowana wyżej
 
         """################## ROBOT DETECTION AND TRACKING ######################"""
+        """
+        Podwyższenie jasności
+        """
+        hsv = cv.cvtColor(DATA.base_image, cv.COLOR_BGR2HSV)
+        hsv[:,:,2] += SETTINGS.BRIGHTNESS
+        DATA.base_image = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
         tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
 
         """###################### ROBOT PID CONTROLLING #########################"""
 
+        """ KW nazywa tą część PREPROCESOREM """
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
+        """ KONIEC """
+
         #if heading_error > 2*np.pi:
         #    heading_error = -(heading_error-np.pi)
         #if heading_error < -2*np.pi:
