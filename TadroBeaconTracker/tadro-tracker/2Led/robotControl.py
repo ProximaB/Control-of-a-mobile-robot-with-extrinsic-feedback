@@ -140,7 +140,7 @@ class TrackerBootstrap:
                 if 0 < (g) < 255:
                     if 0< (r) < 255:
                         thre = self.SETTINGS.thresholds[0]
-                        d = 45
+                        d = CFG.MOUSE_CALIB_DIST
                         thre['low_red'] = int((r - d) %255)
                         thre['high_red'] = int((r + d) %255)
                         thre['low_green'] = int((g - d) %255)

@@ -11,6 +11,7 @@ D = Data()
 #Podwyższenie jasności obrazu
 D.BRIGHTNESS = 50
 D.DIST = 2
+D.MOUSE_CALIB_DIST = 35 
 # Real Robot area settings
 D.AREA_HEIGHT_REAL = 50 #[mm] 12.8 razy mniejsze niz pix 12.8mm/px
 D.AREA_WIDTH_REAL = 100 #[mm]
