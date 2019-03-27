@@ -551,8 +551,10 @@ def main_default():
         xT, yT = DATA.target
 
         """################## Wyliczanie prędkości kół ###############"""
-
-        if(y0 < y < y1 and x0 < x < x1 or done_heading):
+        if not DATA.detected:
+            vel_1 = 0
+            vel_2 = 0
+        elif(y0 < y < y1 and x0 < x < x1 or done_heading):
             #vel_1 = outVel * cos(-outTheta)
             #vel_2 = outVel * sin(-outTheta)
             ''' Tutaj wyliczane są predkość kątowe dla każdego z kół robota. 
@@ -715,7 +717,7 @@ def main_default():
 
         #time.sleep(0.02)
         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
-        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error, DATA.doWarpImage)
+        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error, DATA.doWarpImage, DATA.detected)
         #ROBOT.log_print()
         hI, wI, _ = DATA.base_image.shape
         #print((hI, CFG.AREA_HEIGHT_REAL, wI, CFG.AREA_WIDTH_REAL)

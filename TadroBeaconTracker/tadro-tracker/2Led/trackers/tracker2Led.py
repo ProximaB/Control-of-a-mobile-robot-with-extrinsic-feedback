@@ -280,13 +280,16 @@ class Track2Led:
                 cv.circle(DATA.threshed_images[0], robot_centre_img, 10, (255, 255, 0))
                 DATA.heading =  math.atan2(led1_pos_img[0]-led2_pos_img[0], led1_pos_img[1]-led2_pos_img[1]) + -np.pi
                 DATA.heading = -1 * math.atan2(math.sin(DATA.heading), math.cos(DATA.heading))
+                DATA.detected = True
             else:
                 DATA.robot_center = None
                 DATA.heading = None
+                DATA.detected = False
 
         else:
             DATA.robot_center = None
             DATA.heading = None
+            DATA.detected = False
 
     def detectAndTrack(self, SETTINGS, DATA, ROBOT):
         """ this function organizes all of the processing
@@ -323,7 +326,7 @@ class Track2Led:
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])
-        if (DATA.robot_center and DATA.led2_pos) != ('' or None):
+        if (DATA.robot_center and DATA.led2_pos) != None:
             return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.led1_pos, DATA.led2_pos, DATA.heading)
         else: return ROBOT
 
