@@ -323,7 +323,10 @@ class Track2Led:
         target = (xI, yI)
 
         cv.circle(DATA.base_image, target, 3, (255,0,0), 2, -1)
-        cv.imshow('Tracking and recognition', DATA.base_image)
+        #draw_buttons(DATA.base_iamge)
+        cv.imshow('Tracking and recognition', DATA.base_image)        
+        #OnGreenButtonClick(SETTINGS)
+        #OnRedButtonClick(SETTINGS)
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])

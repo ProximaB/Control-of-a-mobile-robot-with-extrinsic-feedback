@@ -97,11 +97,13 @@ class TrackerBootstrap:
                 CFG.SLD_WIND_OFFSET /= 2
 
             cv.moveWindow(f'Sliders_{i}', CFG.SLD_WIND_OFFSET[0] + (i * CFG.SLD_WIND_SLF_OFFSET), CFG.SLD_WIND_OFFSET[1])
-        
-        # pomysł na rejestrowanie sliderow z wykorzystaiem partial
+            
+            # pomysł na rejestrowanie sliderow z wykorzystaiem partial
             for thresh_name in SETTINGS.thresholds[i].keys():
                 cv.createTrackbar(thresh_name, 'Sliders_%d' % i, SETTINGS.thresholds[i][thresh_name], 255,
                     partial(self.change_slider, SETTINGS.thresholds, i, thresh_name))
+
+            cv.createTrackbar('0 : Adjust thresholds \n1', f'Sliders_{i}' ,0,1, partial(self.adjust_thresh, DATA, i))
         """
         # jeden ze sposobów stworzenia wielu sliderów
             def create_slider_callback(thresholds, i, thresh_name):
@@ -112,6 +114,8 @@ class TrackerBootstrap:
             (lambda x: create_slider_callback(thresholds, i, thresh_name))(i))
             #domknciecie, zachowuje context dla i
         """
+
+        
         # Set the method to handle mouse button presses
         cv.setMouseCallback('Tracking and recognition', self.onMouse, DATA)
         SETTINGS.last_key_pressed = 255
@@ -119,10 +123,18 @@ class TrackerBootstrap:
         #SETTINGS.velocity = 40
         
     ###################### CALLBACK FUNCTIONS #########################
+    def adjust_thresh(self, DATA, id, val):
+        for i in range(len(DATA.adjust)):
+            DATA.adjust[i] = 0
+        DATA.adjust[id] = val
+
     def onMouse(self, event, x, y, flags, param):
         """ Callback dla kliknięcia myszy na okno Previw"""
         # clicked the left button
         if event==cv.EVENT_LBUTTONDOWN:
+            """ Check whetever user click on buttons area, then commit color store sequence """
+            
+            """ Get color of pixel and print it"""
             h,w,c = self.DATA.base_image.shape 
             xR = map_img_to_real(x, w, CFG.AREA_WIDTH_REAL)
             yR = map_img_to_real(y, h, CFG.AREA_HEIGHT_REAL)
@@ -130,47 +142,45 @@ class TrackerBootstrap:
             log_print('X, Y:', xR, yR, "    ", end=' ')
             (b,g,r) = self.DATA.processed_image[y,x]
             log_print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
-            (h,s,v) = self.DATA.hsv[y,x]
-            log_print('H, S, V', int(h), int(s), int(v))
-            self.DATA.down_coord = (x,y)
-        if event==cv.EVENT_RBUTTONDOWN: 
-            (b,g,r) = self.DATA.processed_image[y,x]  
-            thre = self.SETTINGS.thresholds[0]
-            if 0 < (b) < 255:
-                if 0 < (g) < 255:
-                    if 0< (r) < 255:
-                        thre = self.SETTINGS.thresholds[0]
-                        d = CFG.MOUSE_CALIB_DIST
-                        thre['low_red'] = int((r - d) %256)
-                        thre['high_red'] = int((r + d) %256)
-                        thre['low_green'] = int((g - d) %256)
-                        thre['high_green']= int((g + d) %256)
-                        thre['low_blue'] = int((b - d ) %256)
-                        thre['high_blue']= int((b + d) %2556)
-
             
-            # aktualizacja pozycji sliderów
-            for j in range(len(self.SETTINGS.thresholds)):
-                #for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
-                #               'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
-                for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
-                    cv.setTrackbarPos(x, f'Sliders_{j}', self.SETTINGS.thresholds[j][x])
-            log_info("Thresholds for left led updated.")
+            if self.DATA.adjust[0] == 1: 
+                (b,g,r) = self.DATA.processed_image[y,x]  
+                thre = self.SETTINGS.thresholds[0]
+                if 0 < (b) < 255:
+                    if 0 < (g) < 255:
+                        if 0< (r) < 255:
+                            thre = self.SETTINGS.thresholds[0]
+                            d = CFG.MOUSE_CALIB_DIST
+                            thre['low_red'] = int((r - d) %256)
+                            thre['high_red'] = int((r + d) %256)
+                            thre['low_green'] = int((g - d) %256)
+                            thre['high_green']= int((g + d) %256)
+                            thre['low_blue'] = int((b - d ) %256)
+                            thre['high_blue']= int((b + d) %2556)
 
-        if event==cv.EVENT_RBUTTONUP: 
-            (b,g,r) = self.DATA.processed_image[y,x]
-            thre = self.SETTINGS.thresholds[1]
-            if 0 <(b) < 255:
-                if 0 <(g) < 255:
-                    if 0 < (r) < 255:
-                        thre = self.SETTINGS.thresholds[1]
-                        d = 25
-                        thre['low_red'] = int((r - d) %256)
-                        thre['high_red'] = int((r + d) %256)
-                        thre['low_green'] = int((g - d) %256)
-                        thre['high_green']= int((g + d) %256)
-                        thre['low_blue'] = int((b - d ) %256)
-                        thre['high_blue']= int((b + d) %256)
+                
+                # # aktualizacja pozycji sliderów
+                # for j in range(len(self.SETTINGS.thresholds)):
+                #     #for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
+                #     #               'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                #     for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
+                #         cv.setTrackbarPos(x, f'Sliders_{j}', self.SETTINGS.thresholds[j][x])
+                # log_info("Thresholds for left led updated.")
+
+            if self.DATA.adjust[1] == 1: 
+                (b,g,r) = self.DATA.processed_image[y,x]
+                thre = self.SETTINGS.thresholds[1]
+                if 0 <(b) < 255:
+                    if 0 <(g) < 255:
+                        if 0 < (r) < 255:
+                            thre = self.SETTINGS.thresholds[1]
+                            d = 25
+                            thre['low_red'] = int((r - d) %256)
+                            thre['high_red'] = int((r + d) %256)
+                            thre['low_green'] = int((g - d) %256)
+                            thre['high_green']= int((g + d) %256)
+                            thre['low_blue'] = int((b - d ) %256)
+                            thre['high_blue']= int((b + d) %256)
 
             # aktualizacja pozycji sliderów
             for j in range(len(self.SETTINGS.thresholds)):
@@ -179,6 +189,9 @@ class TrackerBootstrap:
                 for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
                     cv.setTrackbarPos(x, f'Sliders_{j}', self.SETTINGS.thresholds[j][x])
             log_info("Thresholds for right led updated.")
+
+            for j in range(2):
+                 cv.setTrackbarPos('0 : Adjust thresholds \n1', f'Sliders_{j}', self.DATA.adjust[j])
 
 
     # Function for changing the slider values
@@ -398,6 +411,7 @@ def main_default():
     DATA.area_height_captured = None
     DATA.area_width_captured = None
 
+    DATA.adjust = [{}, {}]
     DATA.doWarpImage = True
 
     pathWinName = 'Robot Path'
