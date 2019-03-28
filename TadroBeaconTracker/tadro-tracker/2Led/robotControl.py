@@ -918,3 +918,9 @@ if __name__ == '__main__':
     #main_simulation()
     main_default()
 log_info("Exit")
+
+
+#def Preprocesor(ROBOT, target):
+ #   error = math.hypot(target[0] - ROBOT.robot_center[0], target[1] - ROBOT.robot_center[1])
+ #   heading_error = ROBOT.heading - math.atan2(ROBOT.robot_center[1]- target[1], ROBOT.robot_center[0]- target[0])
+ #   return (error, heading_error)
