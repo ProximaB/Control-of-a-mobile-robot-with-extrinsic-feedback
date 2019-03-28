@@ -24,16 +24,16 @@ class Track2Led:
         DATA.red_image = np.zeros(shape)
         DATA.blue_image = np.zeros(shape)
         DATA.green_image = np.zeros(shape)
-        DATA.hue_image = np.zeros(shape)
-        DATA.sat_image = np.zeros(shape)
-        DATA.val_image = np.zeros(shape)
+        #DATA.hue_image = np.zeros(shape)
+        #DATA.sat_image = np.zeros(shape)
+        #DATA.val_image = np.zeros(shape)
 
         DATA.red_image_threshed = np.eye(*shape)
         DATA.green_image_threshed = np.eye(*shape)
         DATA.blue_threshed_image = np.eye(*shape)
-        DATA.hue_threshed_image = np.eye(*shape)
-        DATA.sat_threshed_image = np.eye(*shape)
-        DATA.val_threshed_image = np.eye(*shape)
+        #DATA.hue_threshed_image = np.eye(*shape)
+        #DATA.sat_threshed_image = np.eye(*shape)
+        #DATA.val_threshed_image = np.eye(*shape)
         # The final thresholded result
         DATA.threshed_images = [None, None] # tablca przechowująca wynikowe thresholdy, [object, objct]
         DATA.current_threshold = DATA.threshed_images
@@ -47,19 +47,19 @@ class Track2Led:
         # bunch of keypress values
         # So we know what to show, DATAepenDATAing on which key is presseDATA
         DATA.key_dictionary = {
-            ord('w'): DATA.threshed_images,
-            ord('u'): DATA.red_image,
-            ord('i'): DATA.green_image,
-            ord('o'): DATA.blue_image,
-            ord('j'): DATA.red_image_threshed,
-            ord('k'): DATA.green_image_threshed,
-            ord('l'): DATA.blue_threshed_image,
-            ord('a'): DATA.hue_image,
-            ord('s'): DATA.sat_image,
-            ord('d'): DATA.val_image,
-            ord('z'): DATA.hue_threshed_image,
-            ord('x'): DATA.sat_threshed_image,
-            ord('c'): DATA.val_threshed_image,
+            #ord('w'): DATA.threshed_images,
+            #ord('u'): DATA.red_image,
+            #ord('i'): DATA.green_image,
+            #ord('o'): DATA.blue_image,
+            #ord('j'): DATA.red_image_threshed,
+            #ord('k'): DATA.green_image_threshed,
+            #ord('l'): DATA.blue_threshed_image,
+            #ord('a'): DATA.hue_image,
+            #ord('s'): DATA.sat_image,
+            #ord('d'): DATA.val_image,
+            #ord('z'): DATA.hue_threshed_image,
+            #ord('x'): DATA.sat_threshed_image,
+            #ord('c'): DATA.val_threshed_image,
         }
         #wyrzucic, kalibracja w osobnym programie ze zdjec i zapis od pliku pickle i odczyt rownie, metody juz gotowe w tym module od odcz/zaps
         #Obtain the image from the camera calibration to subtract from the captured image
@@ -113,25 +113,26 @@ class Track2Led:
         DATA.red_image = DATA.BGRchannels[2]
 
         # This line creates a hue-saturation-value image
-        DATA.hsv = cv.cvtColor(DATA.processed_image, cv.COLOR_BGR2HSV)
+        #DATA.hsv = cv.cvtColor(DATA.processed_image, cv.COLOR_BGR2HSV)
         #print DATA.processed_image.shape
         #print DATA.hsv
         #print DATA.hsv.shape
         #print cv.split(DATA.hsv)
-        DATA.HSVchannels = cv.split(DATA.hsv)
+        #DATA.HSVchannels = cv.split(DATA.hsv)
         #print DATA.HSVchannels
-        DATA.hue_image = DATA.HSVchannels[0]
-        DATA.sat_image = DATA.HSVchannels[1]
-        DATA.val_image = DATA.HSVchannels[2]
+        #DATA.hue_image = DATA.HSVchannels[0]
+        #DATA.sat_image = DATA.HSVchannels[1]
+        #DATA.val_image = DATA.HSVchannels[2]
 
-        shape = DATA.hue_image.shape
+        shape = DATA.processed_image.shape
+       
         for i in range(len(SETTINGS.thresholds)):
             DATA.red_threshed_image = np.eye(*shape)
             DATA.blue_threshed_image = np.eye(*shape)
             DATA.green_threshed_image = np.eye(*shape)
-            DATA.hue_threshed_image = np.eye(*shape)
-            DATA.sat_threshed_image = np.eye(*shape)
-            DATA.val_threshed_image = np.eye(*shape)
+            #DATA.hue_threshed_image = np.eye(*shape)
+            #DATA.sat_threshed_image = np.eye(*shape)
+            #DATA.val_threshed_image = np.eye(*shape)
 
             DATA.threshed_images[i] = np.eye(*shape)
 
@@ -142,12 +143,12 @@ class Track2Led:
                     DATA.blue_image, SETTINGS.thresholds[i]["low_blue"], SETTINGS.thresholds[i]["high_blue"], DATA.blue_threshed_image)
                 DATA.green_threshed_image = cv.inRange(
                     DATA.green_image, SETTINGS.thresholds[i]["low_green"], SETTINGS.thresholds[i]["high_green"], DATA.green_threshed_image)
-                DATA.hue_threshed_image = cv.inRange(
-                    DATA.hue_image, SETTINGS.thresholds[i]["low_hue"], SETTINGS.thresholds[i]["high_hue"], DATA.hue_threshed_image)
-                DATA.sat_threshed_image = cv.inRange(
-                    DATA.sat_image, SETTINGS.thresholds[i]["low_sat"], SETTINGS.thresholds[i]["high_sat"], DATA.sat_threshed_image)
-                DATA.val_threshed_image = cv.inRange(
-                    DATA.val_image, SETTINGS.thresholds[i]["low_val"], SETTINGS.thresholds[i]["high_val"], DATA.val_threshed_image)
+                #DATA.hue_threshed_image = cv.inRange(
+                #    DATA.hue_image, SETTINGS.thresholds[i]["low_hue"], SETTINGS.thresholds[i]["high_hue"], DATA.hue_threshed_image)
+                #DATA.sat_threshed_image = cv.inRange(
+                #    DATA.sat_image, SETTINGS.thresholds[i]["low_sat"], SETTINGS.thresholds[i]["high_sat"], DATA.sat_threshed_image)
+                #DATA.val_threshed_image = cv.inRange(
+                #    DATA.val_image, SETTINGS.thresholds[i]["low_val"], SETTINGS.thresholds[i]["high_val"], DATA.val_threshed_image)
             except:
                 pass
 
@@ -156,12 +157,12 @@ class Track2Led:
                 DATA.red_threshed_image, DATA.green_threshed_image, DATA.threshed_images[i])
             DATA.threshed_images[i] = cv.multiply(
                 DATA.threshed_images[i], DATA.blue_threshed_image, DATA.threshed_images[i])
-            DATA.threshed_images[i] = cv.multiply(
-                DATA.threshed_images[i], DATA.hue_threshed_image, DATA.threshed_images[i])
-            DATA.threshed_images[i] = cv.multiply(
-                DATA.threshed_images[i], DATA.sat_threshed_image, DATA.threshed_images[i])
-            DATA.threshed_images[i] = cv.multiply(
-                DATA.threshed_images[i], DATA.val_threshed_image, DATA.threshed_images[i])
+            # DATA.threshed_images[i] = cv.multiply(
+            #     DATA.threshed_images[i], DATA.hue_threshed_image, DATA.threshed_images[i])
+            # DATA.threshed_images[i] = cv.multiply(
+            #     DATA.threshed_images[i], DATA.sat_threshed_image, DATA.threshed_images[i])
+            # DATA.threshed_images[i] = cv.multiply(
+            #     DATA.threshed_images[i], DATA.val_threshed_image, DATA.threshed_images[i])
 
         #DATA.threshed_images = cv.dilate(DATA.threshed_images, None, iterations=2)
 

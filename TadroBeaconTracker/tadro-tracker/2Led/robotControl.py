@@ -67,23 +67,23 @@ class TrackerBootstrap:
         """Create windows, and set thresholds, Tracking and recognition, Threshold_i, Sliders_i, i->[0,1] or more"""
         SETTINGS.thresholds[CFG.LEFT_LD] = {'low_red': 0, 'high_red': 255,
                                 'low_green': 0, 'high_green': 255,
-                                'low_blue': 0, 'high_blue': 255,
-                                'low_hue': 0, 'high_hue': 255,
-                                'low_sat': 0, 'high_sat': 255,
-                                'low_val': 0, 'high_val': 255}
+                                'low_blue': 0, 'high_blue': 255}
+                                #'low_hue': 0, 'high_hue': 255,
+                                #'low_sat': 0, 'high_sat': 255,
+                                #'low_val': 0, 'high_val': 255}
 
         SETTINGS.thresholds[CFG.RIGHT_LD] = {'low_red': 0, 'high_red': 255,
                                 'low_green': 0, 'high_green': 255,
-                                'low_blue': 0, 'high_blue': 255,
-                                'low_hue': 0, 'high_hue': 255,
-                                'low_sat': 0, 'high_sat': 255,
-                                'low_val': 0, 'high_val': 255}
+                                'low_blue': 0, 'high_blue': 255}
+                               #'low_hue': 0, 'high_hue': 255,
+                                #'low_sat': 0, 'high_sat': 255,
+                                #'low_val': 0, 'high_val': 255}
 
         cv.namedWindow('Tracking and recognition'); cv.moveWindow('Tracking and recognition', 0, 0)
 
         #cv.createTrackbar('Slider_heading', 'Tracing and Recognition.', DATA.targetHeading, 360, self.change_heading,)
         cv.createTrackbar('0 : OFF \n1 : ON','Tracking and recognition',0,1, self.switch)
-        cv.createTrackbar('0 Brightennes 255', 'Tracking and recognition', 0, 255, self.change_brighteness)
+        #cv.createTrackbar('0 Brightennes 255', 'Tracking and recognition', 0, 255, self.change_brighteness)
         
         for i in range(len(SETTINGS.thresholds)):
             cv.namedWindow(f'Threshold_{i}')
@@ -141,18 +141,19 @@ class TrackerBootstrap:
                     if 0< (r) < 255:
                         thre = self.SETTINGS.thresholds[0]
                         d = CFG.MOUSE_CALIB_DIST
-                        thre['low_red'] = int((r - d) %255)
-                        thre['high_red'] = int((r + d) %255)
-                        thre['low_green'] = int((g - d) %255)
-                        thre['high_green']= int((g + d) %255)
-                        thre['low_blue'] = int((b - d ) %255)
-                        thre['high_blue']= int((b + d) %255)
+                        thre['low_red'] = int((r - d) %256)
+                        thre['high_red'] = int((r + d) %256)
+                        thre['low_green'] = int((g - d) %256)
+                        thre['high_green']= int((g + d) %256)
+                        thre['low_blue'] = int((b - d ) %256)
+                        thre['high_blue']= int((b + d) %2556)
 
             
             # aktualizacja pozycji sliderów
             for j in range(len(self.SETTINGS.thresholds)):
-                for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
-                                'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                #for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
+                #               'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
                     cv.setTrackbarPos(x, f'Sliders_{j}', self.SETTINGS.thresholds[j][x])
             log_info("Thresholds for left led updated.")
 
@@ -164,17 +165,18 @@ class TrackerBootstrap:
                     if 0 < (r) < 255:
                         thre = self.SETTINGS.thresholds[1]
                         d = 25
-                        thre['low_red'] = int((r - d) %255)
-                        thre['high_red'] = int((r + d) %255)
-                        thre['low_green'] = int((g - d) %255)
-                        thre['high_green']= int((g + d) %255)
-                        thre['low_blue'] = int((b - d ) %255)
-                        thre['high_blue']= int((b + d) %255)
+                        thre['low_red'] = int((r - d) %256)
+                        thre['high_red'] = int((r + d) %256)
+                        thre['low_green'] = int((g - d) %256)
+                        thre['high_green']= int((g + d) %256)
+                        thre['low_blue'] = int((b - d ) %256)
+                        thre['high_blue']= int((b + d) %256)
 
             # aktualizacja pozycji sliderów
             for j in range(len(self.SETTINGS.thresholds)):
-                for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
-                                'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                #for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
+                #               'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
                     cv.setTrackbarPos(x, f'Sliders_{j}', self.SETTINGS.thresholds[j][x])
             log_info("Thresholds for right led updated.")
 
@@ -515,13 +517,22 @@ def main_default():
                 if DATA.doWarpImage is True: DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, M = warp_iamge_aruco(frame, DATA)
                 else: DATA.base_image = cv.warpPerspective(frame, M, (DATA.area_width_captured, DATA.area_height_captured))
                 #DATA.base_image = frame
+                
                 """
                 Podwyższenie jasności
-                """
+                
                 hsv = cv.cvtColor(DATA.base_image, cv.COLOR_BGR2HSV)
-                hsv[:,:,2] += SETTINGS.BRIGHTNESS
-                DATA.base_image = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+                max = np.max(hsv[:,:,2])
+                
+                dif = 255-max
+                bright = SETTINGS.BRIGHTNESS
+                bright = bright if dif-bright > 0 else dif
 
+                hsv[:,:,2] += bright
+
+                DATA.base_image = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+                
+                """
                 tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
                 if cv.waitKey(1) & 0xFF == ord('q'):
                     break

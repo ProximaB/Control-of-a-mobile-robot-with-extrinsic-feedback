@@ -122,7 +122,7 @@ D.SHOW_PATH = False
 D.MARKER_PREVIEW = True
 
 ######################## 
-D.AUTO_LOAD_THRESHOLDS = True
+D.AUTO_LOAD_THRESHOLDS = False
 
 D.THRESHOLDS_FILE_PATH = r"C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\thresh.txt"
 
