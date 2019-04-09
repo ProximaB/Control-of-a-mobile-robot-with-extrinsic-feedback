@@ -34,7 +34,47 @@ class Robot():
                 .format(self.time, self.robot_center, self.heading, self.heading*180.0/np.pi))
         except Exception as e:
             raise e
+
+class Robot2LedBicycle(Robot):
+    def __init__(self, time, robot_center, led1_pos, led2_pos, heading,  theta, length, diamater=10, axle_len=10, wheel_radius=5):
+        self.led1_pos = led1_pos if led1_pos != None else ''
+        self.led2_pos = led2_pos if led2_pos != None else ''
+        self.axle_len = axle_len
+        self.wheel_radius = wheel_radius
+        self.theta = theta
+        self.length = length
+        Robot.__init__(self, time, robot_center, heading, diamater)
+
+    def update(self, time, robot_center, led1_pos, led2_pos, heading, diamater=10, wheel_radius=5):
+        self.led1_pos = led1_pos if led1_pos != None else ''
+        self.led2_pos = led2_pos if led2_pos != None else ''
+        self.time = time if time != None else ''
+        self.robot_center = robot_center if robot_center != None else ''
+        self.heading = heading if heading != None else ''
+        self.diamater = diamater if diamater != None else ''
+        self.wheel_radius = wheel_radius
     
+    def unpack(self):
+        return (self.led1_pos, self.led2_pos, self.time, self.robot_center, self.heading, self.theta, self.length,self.diamater, self.axle_len)
+    
+    def unpackImg(self, hI, hR, wI, wR):
+        imgMax = (hI, wI)
+        realMax = (hR, wR)
+
+        led1_pos = map_point_to_img(self.led1_pos, imgMax, realMax)
+        led2_pos = map_point_to_img(self.led2_pos, imgMax, realMax)
+        robot_center = map_point_to_img(self.robot_center, imgMax, realMax)
+        diamater = map_real_to_img(self.diamater, imgMax[0], realMax[0])
+        axle_len = map_real_to_img(self.axle_len, imgMax[0], realMax[0])
+        length =  map_real_to_img(self.length, imgMax[0], realMax[0])
+
+        return (led1_pos, led2_pos, self.time, robot_center, self.heading, self.theta, length, diamater, axle_len)
+    def calculate_led_pos(self):
+        led_1_diff = (sin(-self.heading) * -self.axle_len/2.0, cos(-self.heading) * -self.axle_len/2.0)
+        led_2_diff = (sin(-self.heading) * self.axle_len/2.0, cos(-self.heading) * self.axle_len/2.0)
+        self.led1_pos = add_t(self.robot_center, led_1_diff)
+        self.led2_pos = add_t(self.robot_center, led_2_diff)
+
 class Robot2Led(Robot):
     def __init__(self, time, robot_center, led1_pos, led2_pos, heading, diamater=10, axle_len=10, wheel_radius=5):
         self.led1_pos = led1_pos if led1_pos != None else ''

@@ -46,8 +46,8 @@ def load_thresholds(thresholds, pathToFile):
     finally:
         # aktualizacja pozycji sliderów
         for j in range(len(thresholds)):
-            for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
-                            'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+            for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
+                            #'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
                 cv.setTrackbarPos(x, f'Sliders_{j}', thresholds[j][x])
 
     

@@ -8,19 +8,59 @@ class Data:
 D = Data()
 
 ######################## SET D CONSTANTS CONFIG OBJECT ######################## 
+#Podwyższenie jasności obrazu
+D.BRIGHTNESS = 50
+D.DIST = 2
+D.MOUSE_CALIB_DIST = 35 
 # Real Robot area settings
 D.AREA_HEIGHT_REAL = 50 #[mm] 12.8 razy mniejsze niz pix 12.8mm/px
 D.AREA_WIDTH_REAL = 100 #[mm]
 
-# Robot settings 
-D.ROB_CNTR = (50, 25) # x, y
-D.HEADING = 0
-D.DIAMETER = 10 #15#10 
-D.AXLE_LEN = 7 #10 #7
-D.WHEEL_RADIUS = 2
-# Simulator settings
-D.W_HEIGHT = 840#588#640
-D.W_WIDTH =  1480#1036#1280
+D.LED_ENUM = 1
+D.ARUCCO_ENUM = 2
+
+D.SIMULATION = True
+D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
+D.WARP_TOLERANCE = 20#2 # tolerancja na zmiane markerow, zmienijsza zakłoócenia,
+# Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
+D.TRACKER_TYPE = D.LED_ENUM #D.ARUCCO_ENUM # D.LED_ENUM
+
+D.THETA = 0
+D.LENGTH = 5 #mm
+
+if D.TRACKER_TYPE is D.LED_ENUM:
+    # Robot settings 
+    D.ROB_CNTR = (50, 25) # x, y
+    D.HEADING = 0
+    D.DIAMETER = 10 #15#10 
+    D.AXLE_LEN = 7 #10 #7
+    D.WHEEL_RADIUS = 2
+    # Simulator settings
+    D.W_HEIGHT = 840#588#640
+    D.W_WIDTH =  1480#1036#1280
+    D.LED_RADIUS = 12#15#7#8 #px
+
+    D.SIDEPIXEL_ARUCO = 100#100
+
+    D.SIM_ERROR =  0.15*D.W_WIDTH/D.AREA_WIDTH_REAL
+    
+elif D.TRACKER_TYPE is D.ARUCCO_ENUM:
+    # Robot settings 
+    D.ROB_CNTR = (50, 25) # x, y
+    D.HEADING = 0
+    D.DIAMETER = 20 #20#15#10 
+    D.AXLE_LEN = 14 #17#10 #7
+    D.WHEEL_RADIUS = 2
+    # Simulator settings
+    D.W_HEIGHT = 840#588#640
+    D.W_WIDTH =  1480#1036#1280
+    D.LED_RADIUS = 12#15#7#8 #px
+    D.SIDEPIXEL_ARUCO = 100#100
+    D.ARUCO_SIDE_PIXELS = 80
+
+    D.SIM_ERROR = 3
+
+#############
 D.D_MARGIN_HORIZONTAL = (150, 10) #(L,R)
 D.D_MARGIN_VERTICAL = (10, 10)
 D.FONT = cv.FONT_HERSHEY_SIMPLEX
@@ -28,7 +68,7 @@ D.FONT = cv.FONT_HERSHEY_SIMPLEX
 D.D_WIDTH = D.W_WIDTH - D.D_MARGIN_HORIZONTAL[0] - D.D_MARGIN_HORIZONTAL[1] #Wielkosc symulacji, potrzebne do policzenia skali 
 D.D_HEIGHT = D.W_HEIGHT - D.D_MARGIN_VERTICAL[0] - D.D_MARGIN_VERTICAL[1]   # w odniesieniu do wielkosci wykrytego oknaprzez kamere
 
-D.LED_RADIUS = 12#15#7#8 #px
+
 D.LED_THICKNES = -1#8 
 D.ROBOT_THICKNESS = 3
 
@@ -43,32 +83,23 @@ D.UPPER_RIGHT_ID = 2
 D.BOTTOM_RIGHT = 3
 D.BOTTOM_LEFT = 4
 D.CORNER_IDS = [D.UPPER_LEFT_ID, D.UPPER_RIGHT_ID, D.BOTTOM_RIGHT, D.BOTTOM_LEFT]
-D.SIDEPIXEL_ARUCO = 100#100
-D.SIDEPIXEL_ARUCO_ROBOT = 30
 D.MARGIN_ARUCO = 40 #30
 
 #Settings for PID controller
 #angular controll
 
-D.LED_ENUM = 1
-D.ARUCCO_ENUM = 2
 
-D.SIMULATION = True
-D.CAMERA_FEEDBACK = True # czy obraz przechwycic z kamery czy wprost z symulatora
-
-# Choose tracker algorithm: 2 Led -> 0, Arruco marker -> 1
-D.TRACKER_TYPE = D.LED_ENUM
-
-D.PROPORTIONAL1 = 1.0 #proporcjonalny
-D.INTEGRAL1 = 1.0 #całka
+# ehading
+D.PROPORTIONAL1 = 2.0 #proporcjonalny
+D.INTEGRAL1 = 0.2 #całka
 D.DERIVATIVE1 = 0.001 #pochodna
 
 D.PROPORTIONAL2 = 1.0
-D.INTEGRAL2 = 1.4
+D.INTEGRAL2 = 1.0
 D.DERIVATIVE2  = 0.001
 
-D.VEL = 500
-D.SIM_ERROR = 3
+D.VEL = 200
+
  
 #Choose leds order, when LEFT_LD = 0 that refer to led on the side wihich robot is turing going forward-left 
 D.LEFT_LD = 0
@@ -91,7 +122,7 @@ D.SHOW_PATH = False
 D.MARKER_PREVIEW = True
 
 ######################## 
-D.AUTO_LOAD_THRESHOLDS = True
+D.AUTO_LOAD_THRESHOLDS = False
 
 D.THRESHOLDS_FILE_PATH = r"C:\Users\barte\Documents\Studia VII\Image_processing\TadroBeaconTracker\tadro-tracker\thresh.txt"
 

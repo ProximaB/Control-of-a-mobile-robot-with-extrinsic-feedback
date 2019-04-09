@@ -27,7 +27,7 @@ from tracker2Led import Track2Led
 
 from trackerArruco import TrackArruco
 # import Robot class
-from robot import Robot, Robot2Led, RobotAruco
+from robot import Robot, Robot2Led, RobotAruco, Robot2LedBicycle
 # custom simpl logger
 from logger import *
 # import utils
@@ -40,12 +40,14 @@ from PID import PID as pid
 sys.path.insert(0, r'./TadroBeaconTracker/tadro-tracker/2Led/Symulator')
 
 # sim envs
-from robotSimulator2Led import robotSimulationEnv2Led
+from robotSimulator2Led import robotSimulationEnv2Led, robotSimulationEnv2LedBicycle
 
 from robotSimulatorAruco import robotSimulationEnvAruco
 
 # models
-from RobotModel2Wheels import RobotModel2Wheels
+from RobotModel2Wheels import RobotModel2Wheels#, RobotBicycleModel
+
+from BicyclePCtrl import BicyclePCtrl, DiffCtrl
 
 class Settings(object):
     pass
@@ -62,25 +64,26 @@ class TrackerBootstrap:
         SETTINGS = self.SETTINGS
         DATA = self.DATA
 
-        """Create windows, and set thresholds, Tracing and Recognition., Threshold_i, Sliders_i, i->[0,1] or more"""
+        """Create windows, and set thresholds, Tracking and recognition, Threshold_i, Sliders_i, i->[0,1] or more"""
         SETTINGS.thresholds[CFG.LEFT_LD] = {'low_red': 0, 'high_red': 255,
                                 'low_green': 0, 'high_green': 255,
-                                'low_blue': 0, 'high_blue': 255,
-                                'low_hue': 0, 'high_hue': 255,
-                                'low_sat': 0, 'high_sat': 255,
-                                'low_val': 0, 'high_val': 255}
+                                'low_blue': 0, 'high_blue': 255}
+                                #'low_hue': 0, 'high_hue': 255,
+                                #'low_sat': 0, 'high_sat': 255,
+                                #'low_val': 0, 'high_val': 255}
 
         SETTINGS.thresholds[CFG.RIGHT_LD] = {'low_red': 0, 'high_red': 255,
                                 'low_green': 0, 'high_green': 255,
-                                'low_blue': 0, 'high_blue': 255,
-                                'low_hue': 0, 'high_hue': 255,
-                                'low_sat': 0, 'high_sat': 255,
-                                'low_val': 0, 'high_val': 255}
+                                'low_blue': 0, 'high_blue': 255}
+                               #'low_hue': 0, 'high_hue': 255,
+                                #'low_sat': 0, 'high_sat': 255,
+                                #'low_val': 0, 'high_val': 255}
 
-        cv.namedWindow('Tracing and Recognition.'); cv.moveWindow('Tracing and Recognition.', 0, 0)
+        cv.namedWindow('Tracking and recognition'); cv.moveWindow('Tracking and recognition', 0, 0)
 
         #cv.createTrackbar('Slider_heading', 'Tracing and Recognition.', DATA.targetHeading, 360, self.change_heading,)
-        cv.createTrackbar('0 : OFF \n1 : ON','Tracing and Recognition.',0,1, self.switch)
+        cv.createTrackbar('0 : OFF \n1 : ON','Tracking and recognition',0,1, self.switch)
+        #cv.createTrackbar('0 Brightennes 255', 'Tracking and recognition', 0, 255, self.change_brighteness)
         
         for i in range(len(SETTINGS.thresholds)):
             cv.namedWindow(f'Threshold_{i}')
@@ -94,11 +97,13 @@ class TrackerBootstrap:
                 CFG.SLD_WIND_OFFSET /= 2
 
             cv.moveWindow(f'Sliders_{i}', CFG.SLD_WIND_OFFSET[0] + (i * CFG.SLD_WIND_SLF_OFFSET), CFG.SLD_WIND_OFFSET[1])
-        
-        # pomysł na rejestrowanie sliderow z wykorzystaiem partial
+            
+            # pomysł na rejestrowanie sliderow z wykorzystaiem partial
             for thresh_name in SETTINGS.thresholds[i].keys():
                 cv.createTrackbar(thresh_name, 'Sliders_%d' % i, SETTINGS.thresholds[i][thresh_name], 255,
                     partial(self.change_slider, SETTINGS.thresholds, i, thresh_name))
+
+            cv.createTrackbar('0 : Adjust thresholds \n1', f'Sliders_{i}' ,0,1, partial(self.adjust_thresh, DATA, i))
         """
         # jeden ze sposobów stworzenia wielu sliderów
             def create_slider_callback(thresholds, i, thresh_name):
@@ -109,27 +114,84 @@ class TrackerBootstrap:
             (lambda x: create_slider_callback(thresholds, i, thresh_name))(i))
             #domknciecie, zachowuje context dla i
         """
+
+        
         # Set the method to handle mouse button presses
-        cv.setMouseCallback('Tracing and Recognition.', self.onMouse, DATA)
+        cv.setMouseCallback('Tracking and recognition', self.onMouse, DATA)
         SETTINGS.last_key_pressed = 255
         #SETTINGS.last_posn = (0,0)
         #SETTINGS.velocity = 40
         
     ###################### CALLBACK FUNCTIONS #########################
+    def adjust_thresh(self, DATA, id, val):
+        for i in range(len(DATA.adjust)):
+            DATA.adjust[i] = 0
+        DATA.adjust[id] = val
+
     def onMouse(self, event, x, y, flags, param):
         """ Callback dla kliknięcia myszy na okno Previw"""
         # clicked the left button
         if event==cv.EVENT_LBUTTONDOWN:
-            h,w,c = param.base_image.shape 
+            """ Check whetever user click on buttons area, then commit color store sequence """
+            
+            """ Get color of pixel and print it"""
+            h,w,c = self.DATA.base_image.shape 
             xR = map_img_to_real(x, w, CFG.AREA_WIDTH_REAL)
             yR = map_img_to_real(y, h, CFG.AREA_HEIGHT_REAL)
             self.DATA.target = (xR,yR)
             log_print('X, Y:', xR, yR, "    ", end=' ')
             (b,g,r) = self.DATA.processed_image[y,x]
             log_print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
-            (h,s,v) = self.DATA.hsv[y,x]
-            log_print('H, S, V', int(h), int(s), int(v))
-            self.DATA.down_coord = (x,y)
+            
+            if self.DATA.adjust[0] == 1: 
+                (b,g,r) = self.DATA.processed_image[y,x]  
+                thre = self.SETTINGS.thresholds[0]
+                if 0 < (b) < 255:
+                    if 0 < (g) < 255:
+                        if 0< (r) < 255:
+                            thre = self.SETTINGS.thresholds[0]
+                            d = CFG.MOUSE_CALIB_DIST
+                            thre['low_red'] = int((r - d) %256)
+                            thre['high_red'] = int((r + d) %256)
+                            thre['low_green'] = int((g - d) %256)
+                            thre['high_green']= int((g + d) %256)
+                            thre['low_blue'] = int((b - d ) %256)
+                            thre['high_blue']= int((b + d) %2556)
+
+                
+                # # aktualizacja pozycji sliderów
+                # for j in range(len(self.SETTINGS.thresholds)):
+                #     #for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
+                #     #               'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                #     for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
+                #         cv.setTrackbarPos(x, f'Sliders_{j}', self.SETTINGS.thresholds[j][x])
+                # log_info("Thresholds for left led updated.")
+
+            if self.DATA.adjust[1] == 1: 
+                (b,g,r) = self.DATA.processed_image[y,x]
+                thre = self.SETTINGS.thresholds[1]
+                if 0 <(b) < 255:
+                    if 0 <(g) < 255:
+                        if 0 < (r) < 255:
+                            thre = self.SETTINGS.thresholds[1]
+                            d = 25
+                            thre['low_red'] = int((r - d) %256)
+                            thre['high_red'] = int((r + d) %256)
+                            thre['low_green'] = int((g - d) %256)
+                            thre['high_green']= int((g + d) %256)
+                            thre['low_blue'] = int((b - d ) %256)
+                            thre['high_blue']= int((b + d) %256)
+
+            # aktualizacja pozycji sliderów
+            for j in range(len(self.SETTINGS.thresholds)):
+                #for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue',
+                #               'low_hue', 'high_hue', 'low_sat', 'high_sat', 'low_val', 'high_val']:
+                for x in ['low_red', 'high_red', 'low_green', 'high_green', 'low_blue', 'high_blue']:
+                    cv.setTrackbarPos(x, f'Sliders_{j}', self.SETTINGS.thresholds[j][x])
+            log_info("Thresholds for right led updated.")
+
+            for j in range(2):
+                 cv.setTrackbarPos('0 : Adjust thresholds \n1', f'Sliders_{j}', self.DATA.adjust[j])
 
 
     # Function for changing the slider values
@@ -146,6 +208,10 @@ class TrackerBootstrap:
     def switch(self, onOff):
         self.SETTINGS.START = onOff
         log_print(f'Settings.START: {onOff}')
+    
+    def change_brighteness(self, val):
+        self.SETTINGS.BRIGHTNESS = val
+        log_print(f'Settings.Brightennes: {val}')
     ####################### UTILITY ClASS / FUNCTIONS ##########################
 
     def play_in_loop(self, capture, frame_counter):
@@ -165,7 +231,51 @@ class TrackerBootstrap:
         capture.set(CV_CAP_PROP_POS_FRAMES, frame_counter)
         return True
 
-def draw_plot(feedback_list, setpoint_list, time_list, title, id):
+class ArucoTrackerBootstrap:
+    def __init__(self, SETTINGS, DATA):
+        self.SETTINGS = SETTINGS
+        self.DATA = DATA
+
+    def setup_thresholds_sliders(self):
+        SETTINGS = self.SETTINGS
+        DATA = self.DATA
+        
+        cv.namedWindow('Tracking and recognition'); cv.moveWindow('Tracking and recognition', 0, 0)
+        #cv.createTrackbar('Slider_heading', 'Tracing and Recognition.', DATA.targetHeading, 360, self.change_heading,)
+        cv.createTrackbar('0 : OFF \n1 : ON', 'Tracking and recognition' ,0,1, self.switch)
+        # Set the method to handle mouse button presses
+        cv.setMouseCallback('Tracking and recognition', self.onMouse, DATA)
+        SETTINGS.last_key_pressed = 255
+        #SETTINGS.last_posn = (0,0)
+        #SETTINGS.velocity = 40
+
+    ###################### CALLBACK FUNCTIONS #########################
+    def onMouse(self, event, x, y, flags, param):
+        """ Callback dla kliknięcia myszy na okno Previw"""
+        # clicked the left button
+        if event==cv.EVENT_LBUTTONDOWN:
+            h,w,c = param.base_image.shape 
+            xR = map_img_to_real(x, w, CFG.AREA_WIDTH_REAL)
+            yR = map_img_to_real(y, h, CFG.AREA_HEIGHT_REAL)
+            self.DATA.target = (xR,yR)
+            log_print('X, Y:', xR, yR, "    ", end=' ')
+            (b,g,r) = self.DATA.processed_image[y,x]
+            log_print('R, G, B: ', int(r), int(g), int(b), "    ", end=' ')
+            (h,s,v) = self.DATA.hsv[y,x]
+            log_print('H, S, V', int(h), int(s), int(v))
+            self.DATA.down_coord = (x,y)
+            
+    def switch(self, onOff):
+        self.SETTINGS.START = onOff
+        log_print(f'Settings.START: {onOff}')
+
+import matplotlib.patches as mpatches
+import matplotlib.pyplot as plt
+
+def draw_plot(feedback_list, setpoint_list, time_list, id, title, xlabel = 'time (s)', ylabel='PID (PV)'):
+    red_patch = mpatches.Patch(color='orange', label='set point')
+    signal_patch = mpatches.Patch(color='blue', label='error')
+
     time_sm = np.array(time_list)
     time_smooth = np.linspace(time_sm.min(), time_sm.max(), 300)
 
@@ -173,21 +283,37 @@ def draw_plot(feedback_list, setpoint_list, time_list, title, id):
     # Using make_interp_spline to create BSpline
     helper_x3 = make_interp_spline(time_list, feedback_list)
     feedback_smooth = helper_x3(time_smooth)
-
+ 
     L = len(time_list)
     f = plt.figure(id)
     plt.plot(time_smooth, feedback_smooth)
     plt.plot(time_list, setpoint_list)
     #plt.xlim((0, L))
     #plt.ylim((min(feedback_list)-0.5, max(feedback_list)+0.5))
-    plt.xlabel('time (s)')
-    plt.ylabel('PID (PV)')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.title(title)
-
+    plt.legend(handles=[red_patch,signal_patch])
     #plt.ylim((1-0.5, 1+0.5))
 
     plt.grid(True)
     return f
+
+def draw_path(x_pos, y_pos, id, title, xlabel = 'time (s)', ylabel='PID (PV)'):
+    fig = plt.figure(id)
+    ax = fig.add_subplot(111)
+    ax.set_xlim(-5, 105)
+    ax.set_ylim(55, -5)
+  
+    plt.semilogy(y_pos, x_pos)
+
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+
+    plt.grid(True)
+    plt.show()
+    return fig
 
 def warp_iamge_aruco(image, DATA):
     orig = image.copy()
@@ -210,14 +336,13 @@ def warp_iamge_aruco(image, DATA):
         for i in range(4): 
             x, y = sub_t(corners[i][0][0], DATA.prevCorners[i][0][0])
             subs += math.sqrt(x**2 + y**2)
-        if subs < 50:
+        if subs < CFG.WARP_TOLERANCE:
            corners = DATA.prevCorners
         else:
             log_print("Movement affected affine trans.")
 
     DATA.prevCorners = corners
     preview = aruco.drawDetectedMarkers(image, corners)
-    if CFG.MARKER_PREVIEW is True: cv.imshow(DATA.markerPreviewWinName, preview)
 
     #genPts = (v[0][0] for v in corners)
     #genPts = []
@@ -227,6 +352,15 @@ def warp_iamge_aruco(image, DATA):
     genPts = (v[0][0] for v in corners)
     pts = np.stack(genPts)
     rect = np.zeros((4, 2), dtype="float32")
+    if len(pts) == 4:
+        array = pts.tolist()
+        aar = np.array([array[2],array[0], array[1],array[3]], dtype="int32"),
+        for i in np.stack(pts):
+            x,y = i.ravel()
+            cv.circle(preview,(x,y),7,(255,0,0),-1)
+        cv.polylines(preview, aar, True, (0,255,0), 2)
+
+    if CFG.MARKER_PREVIEW is True: cv.imshow(DATA.markerPreviewWinName, preview)
 
     s = pts.sum(axis=1)
     rect[0] = pts[np.argmin(s)]
@@ -267,6 +401,7 @@ def main_default():
     SETTINGS = Settings()
     SETTINGS.thresholds = [{}, {}]
     SETTINGS.START = 0
+    SETTINGS.BRIGHTNESS = CFG.BRIGHTNESS
 
     DATA = Data()
     DATA.robot_data = []
@@ -276,6 +411,7 @@ def main_default():
     DATA.area_height_captured = None
     DATA.area_width_captured = None
 
+    DATA.adjust = [{}, {}]
     DATA.doWarpImage = True
 
     pathWinName = 'Robot Path'
@@ -291,7 +427,7 @@ def main_default():
         trackerBootstrap = TrackerBootstrap(SETTINGS, DATA)
     else:
         tracker = TrackArruco(DATA)
-
+        trackerBootstrap = ArucoTrackerBootstrap(SETTINGS, DATA)
     ROBOT = None #= Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
     #ROBOT.calculate_led_pos()# = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
                 # ROBOT.calculate_led_pos()
@@ -300,13 +436,19 @@ def main_default():
     if CFG.SIMULATION:#diamater=10, axle_len=10, wheel_radius=5
         
         if CFG.TRACKER_TYPE is CFG.LED_ENUM:
+            #ROBOT = Robot2LedBicycle(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.THETA, CFG.LENGTH, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             ROBOT = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             ROBOT.calculate_led_pos()
 
+            #simRobot = Robot2LedBicycle(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.THETA, CFG.LENGTH, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             simRobot = Robot2Led(0, CFG.ROB_CNTR, None, None, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             simRobot.calculate_led_pos()
+
+            #model = RobotBicycleModel(simRobot) #zmiania modelu na rowerowy
             model = RobotModel2Wheels(simRobot)
             sim = robotSimulationEnv2Led(model)
+            #sim = robotSimulationEnv2LedBicycle(model)
+            #robotSimulationEnv2Led
 
             log_info('Inicjalizacja sliderow do thresholdingu.')
             trackerBootstrap.setup_thresholds_sliders()
@@ -315,13 +457,19 @@ def main_default():
                 load_thresholds(SETTINGS.thresholds, CFG.THRESHOLDS_FILE_PATH)
 
         else:
+            aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
+            robot_aruco_img = aruco.drawMarker(aruco_dict, id = CFG.ROBOT_ID, sidePixels = CFG.ARUCO_SIDE_PIXELS)
+
             #Init Tracker's Robot Object
             ROBOT = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.DIAMETER, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             
             simRobot = RobotAruco(0, CFG.ROB_CNTR, CFG.HEADING, CFG.AXLE_LEN, CFG.WHEEL_RADIUS)
             model = RobotModel2Wheels(simRobot)
-            sim = robotSimulationEnvAruco()
-        
+            sim = robotSimulationEnvAruco(model, robot_aruco_img)
+
+            log_info('Inicjalizacja sliderow do thresholdingu.')
+            trackerBootstrap.setup_thresholds_sliders()
+            
         if CFG.CAMERA_FEEDBACK:
             sim.simulate_return_image(0,0,0.01)
             capture = cv.VideoCapture(CFG.VIDEO_PATH)
@@ -344,9 +492,11 @@ def main_default():
         # prawdziwy numer klatki
         frame_counter = CFG.NUM_FRAMES_TO_SKIP
     
-    PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1)
+    PID1 = pid(CFG.PROPORTIONAL1, CFG.INTEGRAL1, CFG.DERIVATIVE1) # feedbacck od heading
     PID2 = pid(CFG.PROPORTIONAL2, CFG.INTEGRAL2, CFG.DERIVATIVE2)
     
+    controler = DiffCtrl(PID1,PID2, ROBOT) #BicyclePCtrl(PID1, PID2, ROBOT)
+
     PID1.SetPoint = 0
     PID1.setSampleTime(0.02)
     PID1.update(0)
@@ -360,10 +510,15 @@ def main_default():
     feedback_list = [[], []]
     time_list =  [[], []]
     setpoint_list =  [[],[]]
+    position_list = [[],[]]
 
     wasDrawn = True
     Vel = CFG.VEL
-    
+    done_heading = False
+
+    error = 0.0
+    heading_error = 0.0
+
     while(True):
         if CFG.SIMULATION:
             if SETTINGS.START == 0:
@@ -376,7 +531,22 @@ def main_default():
                 if DATA.doWarpImage is True: DATA.base_image, DATA.area_height_captured, DATA.area_width_captured, M = warp_iamge_aruco(frame, DATA)
                 else: DATA.base_image = cv.warpPerspective(frame, M, (DATA.area_width_captured, DATA.area_height_captured))
                 #DATA.base_image = frame
+                
+                """
+                Podwyższenie jasności
+                
+                hsv = cv.cvtColor(DATA.base_image, cv.COLOR_BGR2HSV)
+                max = np.max(hsv[:,:,2])
+                
+                dif = 255-max
+                bright = SETTINGS.BRIGHTNESS
+                bright = bright if dif-bright > 0 else dif
 
+                hsv[:,:,2] += bright
+
+                DATA.base_image = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+                
+                """
                 tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
                 if cv.waitKey(1) & 0xFF == ord('q'):
                     break
@@ -389,16 +559,53 @@ def main_default():
                 continue
 
         #cv.waitKey(100)
-
+        #vel_1, vel_2 = controler.getControl(PID1.output, PID2.output, DATA, ROBOT)
+        #VelCtrl, TheataCtrl = bicycleCtrl.getControl(heading_error, error)
+        """################## Zmienne wykorzystywane na potrzeby sterowania ###############"""
         h, w = DATA.base_image.shape[:2]
         p = math.sqrt(h**2 + w**2)
-        outTheta = PID1.output
+        outTheta = -PID1.output
         outVel = float(PID2.output/p * Vel)
         outVel = outVel if outVel < Vel else Vel
         
-        vel_1 = outVel * cos(-outTheta)
-        vel_2 = outVel * sin(-outTheta)
+        dist_area = ROBOT.diamater/2+CFG.DIST
+        available_area_rect = [(dist_area, dist_area), (CFG.AREA_WIDTH_REAL - dist_area, CFG.AREA_HEIGHT_REAL - dist_area)]
+        x0,y0 = available_area_rect[0]
+        x1, y1 = available_area_rect[1]
+        x, y = ROBOT.robot_center
+        xT, yT = DATA.target
+
+        """################## Wyliczanie prędkości kół ###############"""
+        if not DATA.detected:
+            vel_1 = 0
+            vel_2 = 0
+        elif(y0 < y < y1 and x0 < x < x1 or done_heading):
+            #vel_1 = outVel * cos(-outTheta)
+            #vel_2 = outVel * sin(-outTheta)
+            ''' Tutaj wyliczane są predkość kątowe dla każdego z kół robota. 
+                Feedback od odlegosci i headingu, działający na kolejno prekość forward i prędkość rotational
+            '''
+            """ Następujące równania, zostały wyznaczone w pracy, zapewniają one odpowiednie sterowanie, pozwalające dotrzeć do celu w zależności
+            od odchylenia i odelgłości do celu.
+                outTheta wpływa na keirunek jazdy, outVel na wielkość prędkośći. 
+            """
+            vel_1 = (-(2*outVel) - (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
+            vel_2 = (-(2*outVel) + (outTheta * CFG.AXLE_LEN ))/ 2*CFG.WHEEL_RADIUS
+            #if((y0< y < y1 and x0< x < x1)):
+            done_heading = False
+
+        else:
+            #vel_1 = outVel*0.5; vel_2 = -outVel*0.5
+            vel_1 = 0; vel_2=0
+            if y0 < yT < y1 and x0 < xT < x1: #ograniczenie, robot podejmie próbe nakierunkowania na cel tlyko gdy cel będzie w dozwolonej strefie ruchu
+                #wasDrawn = False
+                if heading_error > 20*np.pi/180:
+                    vel_1 = outVel*0.5; vel_2 = -outVel*0.5
+                elif heading_error < -20*np.pi/180:
+                    vel_1 = -outVel*0.5; vel_2 =  outVel*0.5
+                else: done_heading = True
         
+        """################## Symulowanie stanowiska roboczego ###############"""
         # log_print(f'Vl: {vel_1}, Vr: {vel_2}')
         if CFG.SIMULATION:
             if CFG.CAMERA_FEEDBACK:
@@ -412,25 +619,39 @@ def main_default():
         else: 
             DATA.base_image = cv.warpPerspective(frame, DATA.M, (DATA.area_width_captured, DATA.area_height_captured))
          #DATA.base_image = frame
-        """Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
+        """################## Transformacja affiniczna dla prostokąta, określającego pole roboczese ###############"""
         # Zrobiona w juptyer lab
         #zaimplementowana wyżej
 
         """################## ROBOT DETECTION AND TRACKING ######################"""
+        """
+        Podwyższenie jasności
+        """
+        hsv = cv.cvtColor(DATA.base_image, cv.COLOR_BGR2HSV)
+        hsv[:,:,2] += SETTINGS.BRIGHTNESS
+        DATA.base_image = cv.cvtColor(hsv, cv.COLOR_HSV2BGR)
+
         #detectAndTrack2LedRobot()  retval_image -> Rbot([time], postion, heading(orient))
         #nadrzedna klasa robot i podrzeden z dodatkowymi inforamcjami dla szegolengo rodzaju robota z metodami rysowania path i inne dla podklas      
         tracker.detectAndTrack(SETTINGS, DATA, ROBOT)
 
         """###################### ROBOT PID CONTROLLING #########################"""
 
+        """ KW nazywa tą część PREPROCESOREM """
         error = math.hypot(DATA.target[0] - ROBOT.robot_center[0], DATA.target[1] - ROBOT.robot_center[1])
         heading_error = ROBOT.heading - np.pi - math.atan2(ROBOT.robot_center[1]-DATA.target[1], ROBOT.robot_center[0]-DATA.target[0])
         heading_error = -1 * math.atan2(math.sin(heading_error), math.cos(heading_error))
-        if (error < CFG.SIM_ERROR): Vel = 0.0
+        """ KONIEC """
+
+        #if heading_error > 2*np.pi:
+        #    heading_error = -(heading_error-np.pi)
+        #if heading_error < -2*np.pi:
+        #    heading_error = -(heading_error+np.pi)    
+        if (error < CFG.SIM_ERROR): Vel = 0.0; done_heading = False
         #elif (heading_error > 0.2) : Vel = 2.0
         else: Vel = CFG.VEL
-        log_print(f'error:{error}')
-        log_print(f'heading_error:{heading_error}')
+        log_print(f'error: {error}')
+        log_print(f'heading_error: {heading_error}')
         #else: V = 5.1  
         PID1.update(heading_error)
         PID2.update(error)
@@ -440,7 +661,7 @@ def main_default():
         #DATA.robot_data.append((frame_counter, DATA.robot_center, DATA.led1_pos, DATA.led2_pos))   
         sw = statusWindow('Status')
         if (error > CFG.SIM_ERROR):
-
+            
             feedback_list[0].append(heading_error)
             feedback_list[1].append(error)
 
@@ -450,16 +671,41 @@ def main_default():
             time_list[0].append(PID1.current_time)
             time_list[1].append(PID2.current_time)
 
-            img = generate_path_image(DATA, step = 3)#(DATA.base_image, DATA.robot_data) #rysuj droge
+            y, x = ROBOT.robot_center
+            position_list[0].append(x)
+            position_list[1].append(y)
             
-            if CFG.SHOW_PATH is True: cv.imshow(pathWinName, img)
-
+            
+            if CFG.SHOW_PATH is True:
+                img = generate_path_image(DATA, step = 5)#(DATA.base_image, DATA.robot_data) #rysuj droge
+                cv.imshow(pathWinName, img)
+            
             wasDrawn = False
 
         elif wasDrawn == False:
             try:
-                p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 'PID CONTROLL HEADING', 1)
-                p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 'PID CONTROLL VELOCITY', 2)
+                p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 1, 'Orientacja robota względem celu', 'time [s]', 'heading [rad]')
+                p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 2, 'Odleglość robota do celu', 'time [s]', 'distance [mm]')
+                #p3 = draw_path(position_list[0], position_list[1], 3, 'Trasa robota', 'x [mm]', 'y [mm]')
+            except: pass
+            #free arrays
+            p1.show()
+            p2.show()
+            #p3.show()
+
+            feedback_list = [[],[]]
+            setpoint_list = [[], []]
+            time_list = [[], []]
+            position_list = [[],[]]
+
+            DATA.robot_data = []
+
+            wasDrawn = True
+        
+        if cv.waitKey(1) & 0xFF == ord('m'):
+            try:
+                p1 = draw_plot(feedback_list[0], setpoint_list[0], time_list[0], 1, 'Orientacja robota względem celu', 'time [s]', 'heading [rad]')
+                p2 = draw_plot(feedback_list[1], setpoint_list[1], time_list[1], 2, 'Odleglość robota do celu', 'time [s]', 'distance [mm]')
             except: pass
             #free arrays
             p1.show()
@@ -472,7 +718,9 @@ def main_default():
             DATA.robot_data = []
 
             wasDrawn = True
-        
+
+            cv.waitKey(0)
+
         if CFG.SIMULATION:
             pass
         else:
@@ -494,7 +742,7 @@ def main_default():
 
         #time.sleep(0.02)
         #heading_error = ROBOT.heading - np.arctan2(DATA.target[0] - ROBOT.robot_center[0], ROBOT.robot_center[1] - DATA.target[1])
-        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error, DATA.doWarpImage)
+        sw.drawData(ROBOT.robot_center, ROBOT.heading, error, heading_error, DATA.doWarpImage, DATA.detected)
         #ROBOT.log_print()
         hI, wI, _ = DATA.base_image.shape
         #print((hI, CFG.AREA_HEIGHT_REAL, wI, CFG.AREA_WIDTH_REAL)
@@ -506,6 +754,9 @@ def main_default():
             log_info("doWarp-changed")
         elif k == ord('q'):
             break
+        elif k == ord('r'):
+            simRobot.robot_center = (50,25)
+            simRobot.calculate_led_pos()
     
     #path_img = generate_path_image(DATA)
     #zapis path image na dysk
@@ -667,3 +918,9 @@ if __name__ == '__main__':
     #main_simulation()
     main_default()
 log_info("Exit")
+
+
+#def Preprocesor(ROBOT, target):
+ #   error = math.hypot(target[0] - ROBOT.robot_center[0], target[1] - ROBOT.robot_center[1])
+ #   heading_error = ROBOT.heading - math.atan2(ROBOT.robot_center[1]- target[1], ROBOT.robot_center[0]- target[0])
+ #   return (error, heading_error)

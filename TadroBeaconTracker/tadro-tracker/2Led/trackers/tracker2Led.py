@@ -24,16 +24,16 @@ class Track2Led:
         DATA.red_image = np.zeros(shape)
         DATA.blue_image = np.zeros(shape)
         DATA.green_image = np.zeros(shape)
-        DATA.hue_image = np.zeros(shape)
-        DATA.sat_image = np.zeros(shape)
-        DATA.val_image = np.zeros(shape)
+        #DATA.hue_image = np.zeros(shape)
+        #DATA.sat_image = np.zeros(shape)
+        #DATA.val_image = np.zeros(shape)
 
         DATA.red_image_threshed = np.eye(*shape)
         DATA.green_image_threshed = np.eye(*shape)
         DATA.blue_threshed_image = np.eye(*shape)
-        DATA.hue_threshed_image = np.eye(*shape)
-        DATA.sat_threshed_image = np.eye(*shape)
-        DATA.val_threshed_image = np.eye(*shape)
+        #DATA.hue_threshed_image = np.eye(*shape)
+        #DATA.sat_threshed_image = np.eye(*shape)
+        #DATA.val_threshed_image = np.eye(*shape)
         # The final thresholded result
         DATA.threshed_images = [None, None] # tablca przechowująca wynikowe thresholdy, [object, objct]
         DATA.current_threshold = DATA.threshed_images
@@ -47,19 +47,19 @@ class Track2Led:
         # bunch of keypress values
         # So we know what to show, DATAepenDATAing on which key is presseDATA
         DATA.key_dictionary = {
-            ord('w'): DATA.threshed_images,
-            ord('u'): DATA.red_image,
-            ord('i'): DATA.green_image,
-            ord('o'): DATA.blue_image,
-            ord('j'): DATA.red_image_threshed,
-            ord('k'): DATA.green_image_threshed,
-            ord('l'): DATA.blue_threshed_image,
-            ord('a'): DATA.hue_image,
-            ord('s'): DATA.sat_image,
-            ord('d'): DATA.val_image,
-            ord('z'): DATA.hue_threshed_image,
-            ord('x'): DATA.sat_threshed_image,
-            ord('c'): DATA.val_threshed_image,
+            #ord('w'): DATA.threshed_images,
+            #ord('u'): DATA.red_image,
+            #ord('i'): DATA.green_image,
+            #ord('o'): DATA.blue_image,
+            #ord('j'): DATA.red_image_threshed,
+            #ord('k'): DATA.green_image_threshed,
+            #ord('l'): DATA.blue_threshed_image,
+            #ord('a'): DATA.hue_image,
+            #ord('s'): DATA.sat_image,
+            #ord('d'): DATA.val_image,
+            #ord('z'): DATA.hue_threshed_image,
+            #ord('x'): DATA.sat_threshed_image,
+            #ord('c'): DATA.val_threshed_image,
         }
         #wyrzucic, kalibracja w osobnym programie ze zdjec i zapis od pliku pickle i odczyt rownie, metody juz gotowe w tym module od odcz/zaps
         #Obtain the image from the camera calibration to subtract from the captured image
@@ -113,52 +113,56 @@ class Track2Led:
         DATA.red_image = DATA.BGRchannels[2]
 
         # This line creates a hue-saturation-value image
-        DATA.hsv = cv.cvtColor(DATA.processed_image, cv.COLOR_BGR2HSV)
+        #DATA.hsv = cv.cvtColor(DATA.processed_image, cv.COLOR_BGR2HSV)
         #print DATA.processed_image.shape
         #print DATA.hsv
         #print DATA.hsv.shape
         #print cv.split(DATA.hsv)
-        DATA.HSVchannels = cv.split(DATA.hsv)
+        #DATA.HSVchannels = cv.split(DATA.hsv)
         #print DATA.HSVchannels
-        DATA.hue_image = DATA.HSVchannels[0]
-        DATA.sat_image = DATA.HSVchannels[1]
-        DATA.val_image = DATA.HSVchannels[2]
+        #DATA.hue_image = DATA.HSVchannels[0]
+        #DATA.sat_image = DATA.HSVchannels[1]
+        #DATA.val_image = DATA.HSVchannels[2]
 
-        shape = DATA.hue_image.shape
+        shape = DATA.processed_image.shape
+       
         for i in range(len(SETTINGS.thresholds)):
             DATA.red_threshed_image = np.eye(*shape)
             DATA.blue_threshed_image = np.eye(*shape)
             DATA.green_threshed_image = np.eye(*shape)
-            DATA.hue_threshed_image = np.eye(*shape)
-            DATA.sat_threshed_image = np.eye(*shape)
-            DATA.val_threshed_image = np.eye(*shape)
+            #DATA.hue_threshed_image = np.eye(*shape)
+            #DATA.sat_threshed_image = np.eye(*shape)
+            #DATA.val_threshed_image = np.eye(*shape)
 
             DATA.threshed_images[i] = np.eye(*shape)
 
-            DATA.red_threshed_image = cv.inRange(
-                DATA.red_image, SETTINGS.thresholds[i]["low_red"], SETTINGS.thresholds[i]["high_red"], DATA.red_threshed_image)
-            DATA.blue_threshed_image = cv.inRange(
-                DATA.blue_image, SETTINGS.thresholds[i]["low_blue"], SETTINGS.thresholds[i]["high_blue"], DATA.blue_threshed_image)
-            DATA.green_threshed_image = cv.inRange(
-                DATA.green_image, SETTINGS.thresholds[i]["low_green"], SETTINGS.thresholds[i]["high_green"], DATA.green_threshed_image)
-            DATA.hue_threshed_image = cv.inRange(
-                DATA.hue_image, SETTINGS.thresholds[i]["low_hue"], SETTINGS.thresholds[i]["high_hue"], DATA.hue_threshed_image)
-            DATA.sat_threshed_image = cv.inRange(
-                DATA.sat_image, SETTINGS.thresholds[i]["low_sat"], SETTINGS.thresholds[i]["high_sat"], DATA.sat_threshed_image)
-            DATA.val_threshed_image = cv.inRange(
-                DATA.val_image, SETTINGS.thresholds[i]["low_val"], SETTINGS.thresholds[i]["high_val"], DATA.val_threshed_image)
+            try:
+                DATA.red_threshed_image = cv.inRange(
+                    DATA.red_image, SETTINGS.thresholds[i]["low_red"], SETTINGS.thresholds[i]["high_red"], DATA.red_threshed_image)
+                DATA.blue_threshed_image = cv.inRange(
+                    DATA.blue_image, SETTINGS.thresholds[i]["low_blue"], SETTINGS.thresholds[i]["high_blue"], DATA.blue_threshed_image)
+                DATA.green_threshed_image = cv.inRange(
+                    DATA.green_image, SETTINGS.thresholds[i]["low_green"], SETTINGS.thresholds[i]["high_green"], DATA.green_threshed_image)
+                #DATA.hue_threshed_image = cv.inRange(
+                #    DATA.hue_image, SETTINGS.thresholds[i]["low_hue"], SETTINGS.thresholds[i]["high_hue"], DATA.hue_threshed_image)
+                #DATA.sat_threshed_image = cv.inRange(
+                #    DATA.sat_image, SETTINGS.thresholds[i]["low_sat"], SETTINGS.thresholds[i]["high_sat"], DATA.sat_threshed_image)
+                #DATA.val_threshed_image = cv.inRange(
+                #    DATA.val_image, SETTINGS.thresholds[i]["low_val"], SETTINGS.thresholds[i]["high_val"], DATA.val_threshed_image)
+            except:
+                pass
 
             #mnożenie do wynikowego threshold_iamges
             DATA.threshed_images[i] = cv.multiply(
                 DATA.red_threshed_image, DATA.green_threshed_image, DATA.threshed_images[i])
             DATA.threshed_images[i] = cv.multiply(
                 DATA.threshed_images[i], DATA.blue_threshed_image, DATA.threshed_images[i])
-            DATA.threshed_images[i] = cv.multiply(
-                DATA.threshed_images[i], DATA.hue_threshed_image, DATA.threshed_images[i])
-            DATA.threshed_images[i] = cv.multiply(
-                DATA.threshed_images[i], DATA.sat_threshed_image, DATA.threshed_images[i])
-            DATA.threshed_images[i] = cv.multiply(
-                DATA.threshed_images[i], DATA.val_threshed_image, DATA.threshed_images[i])
+            # DATA.threshed_images[i] = cv.multiply(
+            #     DATA.threshed_images[i], DATA.hue_threshed_image, DATA.threshed_images[i])
+            # DATA.threshed_images[i] = cv.multiply(
+            #     DATA.threshed_images[i], DATA.sat_threshed_image, DATA.threshed_images[i])
+            # DATA.threshed_images[i] = cv.multiply(
+            #     DATA.threshed_images[i], DATA.val_threshed_image, DATA.threshed_images[i])
 
         #DATA.threshed_images = cv.dilate(DATA.threshed_images, None, iterations=2)
 
@@ -166,10 +170,10 @@ class Track2Led:
         # erozja dylatacja w zaleznosci od potrzeb
         #cv.erode(DATA.threshed_images, DATA.threshed_images, iterations = 1)
         #cv.dilate(DATA.threshed_images, DATA.threshed_images, iterations = 1)
-        kernel = np.ones((5,5),np.uint8)
-        for i in range(len(DATA.threshed_images)):
-            erosion = cv.erode(DATA.threshed_images[i],kernel,iterations = 1)
-            dilation = cv.dilate(DATA.threshed_images[i],kernel,iterations = 1)
+        #kernel = np.ones((5,5),np.uint8)
+        #for i in range(len(DATA.threshed_images)):
+        #    erosion = cv.erode(DATA.threshed_images[i],kernel,iterations = 1)
+        #    dilation = cv.dilate(DATA.threshed_images[i],kernel,iterations = 1)
 
     def check_LED(self, x1, y1, x2, y2):
         #sprawdzenie, czy led są w bliskiej odległości
@@ -277,13 +281,16 @@ class Track2Led:
                 cv.circle(DATA.threshed_images[0], robot_centre_img, 10, (255, 255, 0))
                 DATA.heading =  math.atan2(led1_pos_img[0]-led2_pos_img[0], led1_pos_img[1]-led2_pos_img[1]) + -np.pi
                 DATA.heading = -1 * math.atan2(math.sin(DATA.heading), math.cos(DATA.heading))
+                DATA.detected = True
             else:
                 DATA.robot_center = None
                 DATA.heading = None
+                DATA.detected = False
 
         else:
             DATA.robot_center = None
             DATA.heading = None
+            DATA.detected = False
 
     def detectAndTrack(self, SETTINGS, DATA, ROBOT):
         """ this function organizes all of the processing
@@ -316,11 +323,14 @@ class Track2Led:
         target = (xI, yI)
 
         cv.circle(DATA.base_image, target, 3, (255,0,0), 2, -1)
-        cv.imshow('Tracing and Recognition.', DATA.base_image)
+        #draw_buttons(DATA.base_iamge)
+        cv.imshow('Tracking and recognition', DATA.base_image)        
+        #OnGreenButtonClick(SETTINGS)
+        #OnRedButtonClick(SETTINGS)
         # Currently selected threshold image:
         for i in range(len(DATA.threshed_images)):
             cv.imshow('Threshold_%d' % i, DATA.current_threshold[i])
-        if (DATA.robot_center and DATA.led2_pos) != ('' or None):
+        if (DATA.robot_center and DATA.led2_pos) != None:
             return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.led1_pos, DATA.led2_pos, DATA.heading)
         else: return ROBOT
 

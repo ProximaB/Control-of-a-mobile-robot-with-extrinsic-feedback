@@ -14,29 +14,40 @@ from robot import Robot, Robot2Led, RobotAruco
 import cv2.aruco as aruco
 
 class TrackArruco:
-    def __init__(self, ):
+    def __init__(self, DATA):
         DATA.created_images = False
         self.time = time.clock()
 
     def find_arruco(self, DATA, SETTINGS):
         image = DATA.processed_image
         gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+        #gray = cv.bilateralFilter(gray, 4,4,4)
         aruco_dict = aruco.Dictionary_get(CFG.ARUCO_DICT)
         parameters = aruco.DetectorParameters_create()
         corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
-    
+        if not corners:
+            return None
         DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, corners)
-        return 
+        
+        return corners
     
     def midpoint(self, p1, p2):
-        return  ((p1.x+p2.x)/2.0, (p1.y+p2.y)/2.0)
+        return  ((p1[0]+p2[0])/2.0, (p1[1]+p2[1])/2.0)
 
     def detectAndTrack(self, SETTINGS, DATA, ROBOT):
         if DATA.base_image is None:
             raise Exception("No base_iamge provided. {->detectAndTrack2LedRobot}")
-        image = DATA.base_image
-        RB, LB, LT, RT = DATA.robot_cntr
-        robot_center_img = self.midpoint(RB, LT)
+        #for prfm get rid of it
+        DATA.processed_image = DATA.base_image.copy()
+
+        robot_ctour = self.find_arruco(DATA, SETTINGS)
+        if robot_ctour is None:
+            cv.imshow('Tracking and recognition', DATA.base_image)
+            return ROBOT
+        robot_ctour 
+        LT, RT, RB, LB = robot_ctour[0][0]
+
+        robot_center_img = self.midpoint(LT, RB)
         
         hI, wI, _ = DATA.processed_image.shape
         imgMax = (hI, wI)
@@ -44,18 +55,17 @@ class TrackArruco:
         hR, wR = CFG.AREA_HEIGHT_REAL, CFG.AREA_WIDTH_REAL
         realMax = (hR, wR)
 
-        ROBOT.robot_center = map_point_to_img(robot_center_img, imgMax, realMax)
+        target = map_point_to_img(DATA.target, imgMax, realMax)
+        DATA.robot_center = map_point_to_real(robot_center_img, imgMax, realMax)
 
-        ROBOT.heading =  math.atan2(RB[0]-LT[0], RB[1]-LT[1]) + -np.pi
-        ROBOT.heading = -1 * math.atan2(math.sin(ROBOT.heading), math.cos(ROBOT.heading))
-
-        DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, DATA.robot_cntr)
+        DATA.heading =  math.atan2(LT[0]-RB[0], LT[1]-RB[1]) - np.pi
+        DATA.heading = -1 * math.atan2(math.sin(DATA.heading), math.cos(DATA.heading))
+        DATA.base_image = aruco.drawDetectedMarkers(DATA.base_image, robot_ctour)
         # updatee the displays:
-        cv.circle(DATA.base_image, )
-        cv.circle(DATA.base_image, DATA.target, 3, (255,0,0), 2, -1)
-        cv.imshow('Tracing and Recognition.', self.DATA.base_image)
+        cv.circle(DATA.base_image, target, 3, (255,0,0), 2, -1)
+        cv.imshow('Tracking and recognition', DATA.base_image)
         
-        if (DATA.robot_center and DATA.led2_pos) != ('' or None):
+        if (DATA.robot_center and DATA.heading) != ('' or None):
             return ROBOT.update(time.clock() - self.time, DATA.robot_center, DATA.heading)
         else: return ROBOT
 
