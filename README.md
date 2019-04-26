@@ -1,5 +1,7 @@
 # Control-of-a-mobile-robot-with-extrinsic-feedback
-*The main source is inside **/2Led** directory.*
+The main source is inside **/2Led** directory.
+
+*Repo that may be connected: <a href="https://github.com/ProximaB/Camera-Calibration-Pattern-Generator">Camera-Calibration-Pattern-Generator</a>*
 
 Basic preview: https://youtu.be/a5fWmHw38gU
 
