@@ -3,10 +3,11 @@ The main source is inside **/2Led** directory.
 
 *Repo that may be connected: <a href="https://github.com/ProximaB/Camera-Calibration-Pattern-Generator">Camera-Calibration-Pattern-Generator</a>*
 
-Basic preview: https://youtu.be/a5fWmHw38gU
-
 ## Preview:
 <img src="https://lh6.googleusercontent.com/OLnYy1h2AezUUoEPguvurBa3fhhILCqOnyUZiWaksytgSixoRE99rn1Z_rb3WpFMFTDGgRVPUjIv4NjCvGE_=w1902-h867-rw" />
+
+Preview video: https://youtu.be/a5fWmHw38gU <br/>
+[![Basic preview video](https://img.youtube.com/vi/a5fWmHw38gU/0.jpg)](https://www.youtube.com/watch?v=a5fWmHw38gU)
 
 ## Model układu
 <img src="https://lh4.googleusercontent.com/YxuDOXva6suX4aNuQZsDGJnKg73KlFr06VYWfxEpizuKZ_Y3D_sSioP5VHRngQd7cXIbM7z1jSjbWCUY1bKk=w1902-h867-rw" />
